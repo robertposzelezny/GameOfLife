@@ -40,3 +40,9 @@ bool Button::contains(float x, float y) const
 {
     return shape.getGlobalBounds().contains(sf::Vector2f(x, y));
 }
+
+void Button::setActive(bool a)
+{
+	isActive = a;
+    shape.setFillColor(isActive ? sf::Color(80, 180, 80) : sf::Color(100, 100, 100));
+}

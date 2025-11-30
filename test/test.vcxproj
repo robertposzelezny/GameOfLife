@@ -135,17 +135,27 @@
   <ItemGroup>
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="Button.cpp" />
+    <ClCompile Include="Game.cpp" />
     <ClCompile Include="Glider.cpp" />
     <ClCompile Include="GosperGun.cpp" />
+    <ClCompile Include="Grid.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Pattern.cpp" />
+    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="UIManager.cpp" />
+    <ClCompile Include="WallsManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Block.h" />
     <ClInclude Include="Button.h" />
+    <ClInclude Include="Game.h" />
     <ClInclude Include="Glider.h" />
     <ClInclude Include="GosperGun.h" />
+    <ClInclude Include="Grid.h" />
     <ClInclude Include="Pattern.h" />
+    <ClInclude Include="Renderer.h" />
+    <ClInclude Include="UIManager.h" />
+    <ClInclude Include="WallsManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

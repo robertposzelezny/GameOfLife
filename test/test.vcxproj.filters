@@ -13,25 +13,52 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Pliki źródłowe\ui">
+      <UniqueIdentifier>{da479d47-2509-4f06-a039-475cd83e7a69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Pliki źródłowe\graphics">
+      <UniqueIdentifier>{282a570c-0e03-47d3-93ce-630042cb1870}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Pliki źródłowe\patterns">
+      <UniqueIdentifier>{c3e844bd-3c8c-4592-bbdb-9671c6703bdc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Pliki źródłowe\core">
+      <UniqueIdentifier>{763b05e7-25f0-46e7-bbc0-29f94e98ef85}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Block.cpp">
+      <Filter>Pliki źródłowe\patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="Button.cpp">
+      <Filter>Pliki źródłowe\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="Pattern.cpp">
+      <Filter>Pliki źródłowe\patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="Glider.cpp">
+      <Filter>Pliki źródłowe\patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="GosperGun.cpp">
+      <Filter>Pliki źródłowe\patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="UIManager.cpp">
+      <Filter>Pliki źródłowe\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Pliki źródłowe\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Grid.cpp">
+      <Filter>Pliki źródłowe\core</Filter>
+    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="Button.cpp">
-      <Filter>Pliki źródłowe</Filter>
+    <ClCompile Include="Game.cpp">
+      <Filter>Pliki źródłowe\core</Filter>
     </ClCompile>
-    <ClCompile Include="Pattern.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="Glider.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="Block.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="GosperGun.cpp">
-      <Filter>Pliki źródłowe</Filter>
+    <ClCompile Include="WallsManager.cpp">
+      <Filter>Pliki źródłowe\core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -48,6 +75,21 @@
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="GosperGun.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="UIManager.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="Grid.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="WallsManager.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>

@@ -15,10 +15,7 @@ public:
 
     void draw(sf::RenderWindow& window);
     bool contains(float x, float y) const;
-    void setActive(bool a) {
-        isActive = a;
-        shape.setFillColor(isActive ? sf::Color(80, 180, 80) : sf::Color(100, 100, 100));
-    }
-
+    void setActive(bool a);
+	std::string getLabel() const { return label.getString(); }
     bool active() const { return isActive; }
 };
