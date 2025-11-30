@@ -13,6 +13,7 @@
 #include "Grid.h"
 #include "Renderer.h"
 #include "WallsManager.h"
+#include "InputField.h"
 
 const int WIN_W = 1100;
 const int WIN_H = 800;
@@ -56,8 +57,33 @@ int main() {
 	UIManager uiManager(GRID_W,MENU_W);
     uiManager.createButtons();
 
+    InputField gridSizeInput({ GRID_W + 20, 720 }, { MENU_W - 40, 50 });
+
     while (window.isOpen()) {
         while (auto ev = window.pollEvent()) {
+            if (ev->getIf<sf::Event::TextEntered>()) {
+                gridSizeInput.handleEvent(*ev, window);
+            }
+            if (ev->getIf<sf::Event::MouseButtonPressed>()) {
+                gridSizeInput.handleEvent(*ev, window);
+            }
+            if (auto* ke2 = ev->getIf<sf::Event::KeyPressed>()) {
+                if (ke2->code == sf::Keyboard::Key::Enter) {
+                    int newSize = gridSizeInput.getValue();
+                    if (newSize > 5 && newSize < 300) {
+                        GRID_N = newSize;
+
+                        float cellSize = GRID_W / (float)GRID_N;
+
+                        game = Game(GRID_N);
+                        game.randomize();
+
+                        walls = WallsManager(GRID_N, cellSize, GRID_W);
+                        game.setWalls(&walls);
+                    }
+                }
+            }
+
             if (ev->getIf<sf::Event::Closed>()) {
                 window.close();
                 break;
@@ -194,6 +220,7 @@ int main() {
             }
         }
 
+        gridSizeInput.draw(window);
 		uiManager.draw(window);
         window.display();
     }
