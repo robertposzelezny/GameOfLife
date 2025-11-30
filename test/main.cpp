@@ -14,7 +14,10 @@
 #include "Renderer.h"
 #include "WallsManager.h"
 
-int GRID_N = 60;
+const int WIN_W = 1100;
+const int WIN_H = 800;
+const int MENU_W = 300;
+const int GRID_W = WIN_W - MENU_W;
 
 enum class PatternType {
     None,
@@ -28,10 +31,7 @@ PatternType selectedPattern = PatternType::None;
 int main() {
     srand(time(0));
 
-    int WIN_W = 1100;
-    int WIN_H = 800;
-    int MENU_W = 300;
-    int GRID_W = WIN_W - MENU_W;
+    int GRID_N = 60;
 
     sf::RenderWindow window(sf::VideoMode(sf::Vector2u(WIN_W, WIN_H)), "Game of Life (Simple)");
     window.setFramerateLimit(60);

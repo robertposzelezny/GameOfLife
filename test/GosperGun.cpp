@@ -19,7 +19,7 @@ void GosperGun::apply(Grid& g, int offsetX, int offsetY) const {
 		int x = offsetX + cell.first;
 		int y = offsetY + cell.second;
 		if (y >= 0 && y < g.size() && x >= 0 && x < g[0].size()) {
-			g[y][x] = 1;
+			g[x][y] = 1;
 		}
 	}
 }

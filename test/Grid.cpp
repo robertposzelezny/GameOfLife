@@ -1,6 +1,6 @@
 #include "Grid.h"
 #include <cstdlib>
-
+#include <iostream>
 
 Grid::Grid(int n) : N(n), cells(n, std::vector<int>(n, 0)) {}
 
@@ -19,6 +19,10 @@ void Grid::clear() {
 
 
 int Grid::countNeighbors(int x, int y) const {
+
+    if (!walls) {
+        std::cerr << "Grid::countNeighbors: walls == nullptr\n";
+    }
     int ncount = 0;
     for (int dy = -1; dy <= 1; ++dy) {
         for (int dx = -1; dx <= 1; ++dx) {
@@ -27,19 +31,20 @@ int Grid::countNeighbors(int x, int y) const {
             int ny = y + dy;
 
             if (nx < 0) {
-                if (walls && walls->left() && nx < 0) continue;
+                if (walls && walls->left()) continue;
                 nx = (nx + N) % N;
             }
             else if (nx >= N) {
-                if (walls && walls->right() && nx >= N) continue;
+                if (walls && walls->right()) continue;
                 nx = nx % N;
             }
+
             if (ny < 0) {
-                if (walls && walls->top() && ny < 0) continue;
+                if (walls && walls->top()) continue;
                 ny = (ny + N) % N;
             }
             else if (ny >= N) {
-                if (walls && walls->bottom() && ny >= N) continue;
+                if (walls && walls->bottom()) continue;
                 ny = ny % N;
             }
 
@@ -48,6 +53,7 @@ int Grid::countNeighbors(int x, int y) const {
     }
     return ncount;
 }
+
 
 void Grid::step() {
 	std::vector<std::vector<int>> next = cells;
