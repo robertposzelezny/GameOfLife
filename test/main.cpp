@@ -4,6 +4,9 @@
 #include <ctime>
 #include <iostream>
 #include "Button.h"
+#include "Glider.h"
+#include "Block.h"
+#include "GosperGun.h"
 
 int GRID_N = 60;
 bool running = false;
@@ -14,6 +17,15 @@ bool blockTop = false;
 bool blockBottom = false;
 
 sf::RectangleShape wallLeft, wallRight, wallTop, wallBottom;
+
+enum class PatternType {
+    None,
+    Glider,
+    Block,
+    GosperGun
+};
+
+PatternType selectedPattern = PatternType::None;
 
 
 using Grid = std::vector<std::vector<int>>;
@@ -129,6 +141,10 @@ int main() {
     Button btnBlockTop("Block Top Wall", { GRID_W + 20, 410 }, { MENU_W - 40, 50 });
     Button btnBlockBottom("Block Bottom Wall", { GRID_W + 20, 470 }, { MENU_W - 40, 50 });
 
+    Button btnAddGlider("Add Glider", { GRID_W + 20, 530 }, { MENU_W - 40, 50 });
+    Button btnAddBlock("Add Block", { GRID_W + 20, 590 }, { MENU_W - 40, 50 });
+	Button btnAddGosperGun("Add Gosper Glider Gun", { GRID_W + 20, 650 }, { MENU_W - 40, 50 });
+
     while (window.isOpen()) {
         while (auto ev = window.pollEvent()) {
             if (ev->getIf<sf::Event::Closed>()) {
@@ -152,12 +168,35 @@ int main() {
 				int mx = me->position.x;
 				int my = me->position.y;
 
-                if (mx < GRID_W && me->button == sf::Mouse::Button::Left) {
-                    int gx = mx / cellSize;
-                    int gy = my / cellSize;
+                if (me->button == sf::Mouse::Button::Left &&
+                    mx >= 0 && mx < GRID_W && my >= 0 && my < GRID_N * cellSize)
+                {
+                    sf::Vector2i mp = sf::Mouse::getPosition(window);
+                    sf::Vector2f wp = window.mapPixelToCoords(mp);
+
+                    int gx = wp.x / cellSize;
+                    int gy = wp.y / cellSize;
+
                     if (gx >= 0 && gx < GRID_N && gy >= 0 && gy < GRID_N)
-                        grid[gy][gx] = 1 - grid[gy][gx];
+                    {
+                        if (selectedPattern == PatternType::None) {
+                            grid[gy][gx] = 1 - grid[gy][gx];
+                        }
+                        else if (selectedPattern == PatternType::Glider) {
+                            Glider gl;
+                            gl.apply(grid, gy, gx);
+                        }
+                        else if (selectedPattern == PatternType::Block) {
+                            Block bl;
+                            bl.apply(grid, gy, gx);
+                        }
+                        else if (selectedPattern == PatternType::GosperGun) {
+                            GosperGun gg;
+                            gg.apply(grid, gy, gx);
+                        }
+                    }
                 }
+
                 else if (mx >= GRID_W && me->button == sf::Mouse::Button::Left) {
 
                     auto clicked = [&](sf::RectangleShape& b) {
@@ -186,6 +225,27 @@ int main() {
                         blockBottom = !blockBottom;
                         btnBlockBottom.setActive(blockBottom);
                         wallBottom.setFillColor(blockBottom ? sf::Color(200, 50, 50) : sf::Color::Transparent);
+                    }
+                    else if (btnAddGlider.contains(mx, my)) {
+                        if (btnAddGlider.active()) { btnAddGlider.setActive(false);selectedPattern = PatternType::None; continue; };
+                        selectedPattern = PatternType::Glider;
+                        btnAddGlider.setActive(true);
+                        btnAddBlock.setActive(false);
+						btnAddGosperGun.setActive(false);
+                    }
+                    else if (btnAddBlock.contains(mx, my)) {
+                        if (btnAddBlock.active()) { btnAddBlock.setActive(false);selectedPattern = PatternType::None; continue; };
+                        selectedPattern = PatternType::Block;
+                        btnAddBlock.setActive(true);
+                        btnAddGlider.setActive(false);
+						btnAddGosperGun.setActive(false);
+                    }
+                    else if (btnAddGosperGun.contains(mx, my)) {
+                        if (btnAddGosperGun.active()) { btnAddGosperGun.setActive(false);selectedPattern = PatternType::None; continue; };
+                        selectedPattern = PatternType::GosperGun;
+                        btnAddGosperGun.setActive(true);
+                        btnAddGlider.setActive(false);
+                        btnAddBlock.setActive(false);
                     }
                 }
             }
@@ -221,7 +281,10 @@ int main() {
         btnBlockRight.draw(window);
         btnBlockTop.draw(window);
         btnBlockBottom.draw(window);
-
+        btnAddGlider.draw(window);
+        btnAddGosperGun.draw(window);
+        btnAddBlock.draw(window);
+		
 
         window.display();
     }
