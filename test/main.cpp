@@ -6,31 +6,60 @@
 #include "Button.h"
 
 int GRID_N = 60;
+bool running = false;
+
+bool blockLeft = false;
+bool blockRight = false;
+bool blockTop = false;
+bool blockBottom = false;
+
+sf::RectangleShape wallLeft, wallRight, wallTop, wallBottom;
+
+
 using Grid = std::vector<std::vector<int>>;
 
 void randomize(Grid& g) {
     for (int y = 0; y < GRID_N; y++)
         for (int x = 0; x < GRID_N; x++)
             g[y][x] = rand() % 2;
+	running = false;
 }
 
 void clearGrid(Grid& g) {
     for (auto& row : g)
         std::fill(row.begin(), row.end(), 0);
+	running = false;
 }
 
 int countNeighbors(const Grid& g, int x, int y) {
     int n = 0;
+
     for (int dy = -1; dy <= 1; dy++) {
         for (int dx = -1; dx <= 1; dx++) {
             if (dx == 0 && dy == 0) continue;
-            int nx = x + dx, ny = y + dy;
-            if (nx >= 0 && nx < GRID_N && ny >= 0 && ny < GRID_N)
-                n += g[ny][nx];
+
+            int nx = x + dx;
+            int ny = y + dy;
+
+            // --- BLOKOWANIE TELEPORTACJI ---
+            if (nx < 0 && blockLeft) continue;
+            if (nx >= GRID_N && blockRight) continue;
+            if (ny < 0 && blockTop) continue;
+            if (ny >= GRID_N && blockBottom) continue;
+
+            // --- NORMALNE WRAPOWANIE ---
+            if (nx < 0) nx = GRID_N - 1;
+            else if (nx >= GRID_N) nx = 0;
+
+            if (ny < 0) ny = GRID_N - 1;
+            else if (ny >= GRID_N) ny = 0;
+
+            n += g[ny][nx];
         }
     }
     return n;
 }
+
 
 Grid step(const Grid& cur) {
     Grid next = cur;
@@ -62,7 +91,26 @@ int main() {
     randomize(grid);
 
     float cellSize = std::min(GRID_W / (float)GRID_N, GRID_W / (float)GRID_N);
-    bool running = false;
+    // Lewa œciana
+    wallLeft.setSize({ cellSize, GRID_N * cellSize });
+    wallLeft.setPosition({ 0, 0 });
+	wallLeft.setFillColor(sf::Color::Transparent);
+
+    // Prawa œciana
+    wallRight.setSize({ cellSize, GRID_N * cellSize });
+    wallRight.setPosition({ GRID_W - cellSize, 0 });
+	wallRight.setFillColor(sf::Color::Transparent);
+
+    // Górna
+    wallTop.setSize({ GRID_N * cellSize, cellSize });
+    wallTop.setPosition({ 0, 0 });
+	wallTop.setFillColor(sf::Color::Transparent);
+
+    // Dolna
+    wallBottom.setSize({ GRID_N * cellSize, cellSize });
+    wallBottom.setPosition({ 0, GRID_N * cellSize - cellSize });
+	wallBottom.setFillColor(sf::Color::Transparent);
+
     int msPerGen = 150;
     sf::Clock clock;
 
@@ -75,6 +123,11 @@ int main() {
 	Button btnStart("Start/Pause (Space)", { GRID_W + 20, 50 }, { MENU_W - 40, 50 });
 	Button btnRand("Randomize (R)", { GRID_W + 20, 130 }, { MENU_W - 40, 50 });
 	Button btnClear("Clear (C)", { GRID_W + 20, 210 }, { MENU_W - 40, 50 });
+
+    Button btnBlockLeft("Block Left Wall", { GRID_W + 20, 290 }, { MENU_W - 40, 50 });
+    Button btnBlockRight("Block Right Wall", { GRID_W + 20, 350 }, { MENU_W - 40, 50 });
+    Button btnBlockTop("Block Top Wall", { GRID_W + 20, 410 }, { MENU_W - 40, 50 });
+    Button btnBlockBottom("Block Bottom Wall", { GRID_W + 20, 470 }, { MENU_W - 40, 50 });
 
     while (window.isOpen()) {
         while (auto ev = window.pollEvent()) {
@@ -114,6 +167,26 @@ int main() {
                     if (btnStart.contains(mx, my)) running = !running;
                     else if (btnRand.contains(mx, my)) randomize(grid);
                     else if (btnClear.contains(mx, my)) clearGrid(grid);
+                    else if (btnBlockLeft.contains(mx, my)) {
+                        blockLeft = !blockLeft;
+                        btnBlockLeft.setActive(blockLeft);
+                        wallLeft.setFillColor(blockLeft ? sf::Color(200, 50, 50) : sf::Color::Transparent);
+                    }
+                    else if (btnBlockRight.contains(mx, my)) {
+                        blockRight = !blockRight;
+                        btnBlockRight.setActive(blockRight);
+                        wallRight.setFillColor(blockRight ? sf::Color(200, 50, 50) : sf::Color::Transparent);
+                    }
+                    else if (btnBlockTop.contains(mx, my)) {
+                        blockTop = !blockTop;
+                        btnBlockTop.setActive(blockTop);
+                        wallTop.setFillColor(blockTop ? sf::Color(200, 50, 50) : sf::Color::Transparent);
+                    }
+                    else if (btnBlockBottom.contains(mx, my)) {
+                        blockBottom = !blockBottom;
+                        btnBlockBottom.setActive(blockBottom);
+                        wallBottom.setFillColor(blockBottom ? sf::Color(200, 50, 50) : sf::Color::Transparent);
+                    }
                 }
             }
         }
@@ -125,6 +198,12 @@ int main() {
 
         window.clear(sf::Color(30, 30, 30));
 
+        window.draw(menuBg);
+        window.draw(wallLeft);
+        window.draw(wallRight);
+        window.draw(wallTop);
+        window.draw(wallBottom);
+
         for (int y = 0; y < GRID_N; y++) {
             for (int x = 0; x < GRID_N; x++) {
                 if (grid[y][x] == 1) {
@@ -135,10 +214,14 @@ int main() {
             }
         }
 
-        window.draw(menuBg);
 		btnStart.draw(window);
 		btnRand.draw(window);
 		btnClear.draw(window);
+        btnBlockLeft.draw(window);
+        btnBlockRight.draw(window);
+        btnBlockTop.draw(window);
+        btnBlockBottom.draw(window);
+
 
         window.display();
     }
