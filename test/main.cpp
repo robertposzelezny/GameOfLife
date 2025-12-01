@@ -69,7 +69,7 @@ int main() {
             if (auto* ke2 = ev->getIf<sf::Event::KeyPressed>()) {
                 if (ke2->code == sf::Keyboard::Key::Enter) {
                     int newSize = gridSizeInput.getValue();
-                    if (newSize > 5 && newSize < 300) {
+                    if (newSize > 5 && newSize < 61) {
                         GRID_N = newSize;
 
                         float cellSize = GRID_W / (float)GRID_N;
