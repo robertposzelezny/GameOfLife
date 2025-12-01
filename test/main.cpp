@@ -39,7 +39,7 @@ int main() {
     Game game(GRID_N);
     game.randomize();
 
-    float cellSize = std::min(GRID_W / (float)GRID_N, GRID_W / (float)GRID_N);
+    float cellSize = GRID_W / (float)GRID_N;
 
     WallsManager walls(GRID_N, cellSize, GRID_W);
     game.setWalls(&walls);
