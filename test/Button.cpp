@@ -1,12 +1,17 @@
 #include "Button.h"
 #include <iostream>
+#include <Windows.h>
 
 
 Button::Button(const std::string& text, const sf::Vector2f& pos, const sf::Vector2f& size) : label(font,text)
 {
-    if (!font.openFromFile("arial.ttf")) {
-        std::cout << "Font load FAILED!\n";
-    }
+    HRSRC res = FindResource(NULL, TEXT("FONT_ARIAL"), RT_RCDATA);
+    HGLOBAL mem = LoadResource(NULL, res);
+    void* data = LockResource(mem);
+    DWORD resource_size = SizeofResource(NULL, res);
+
+    if (!font.openFromMemory(data, resource_size))
+        std::cout << "Failed to load embedded Arial!\n";
 
     shape.setSize(size);
     shape.setPosition(pos);

@@ -7,10 +7,29 @@ public:
     explicit Game(int n);
 
     Grid& grid();
+    /**
+     * @brief Performs a single simulation step if the game is running.
+     */
     void updateStep();
+    /**
+     * @brief Randomizes the entire grid with alive/dead cells.
+     */
     void randomize();
+
+    /**
+     * @brief clears current game grid and pauses the game.
+     *
+     */
     void clear();
+    /**
+    * @brief Toggles the running state of the simulation.
+    */
     void toggleRunning() { running = !running; }
+    /**
+    * @brief Checks whether the simulation is currently running.
+    *
+    * @return True if the game is running.
+    */
     bool isRunning() const { return running; }
     Grid& getGrid() { return g; }
 

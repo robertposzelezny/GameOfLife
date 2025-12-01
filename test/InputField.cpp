@@ -1,6 +1,7 @@
 #include "InputField.h"
 #include <cctype>
-
+#include <Windows.h>
+#include <iostream>
 InputField::InputField(const sf::Vector2f& pos, const sf::Vector2f& size):text(font,"") {
     box.setSize(size);
     box.setPosition(pos);
@@ -8,7 +9,13 @@ InputField::InputField(const sf::Vector2f& pos, const sf::Vector2f& size):text(f
     box.setOutlineColor(sf::Color::White);
     box.setOutlineThickness(2);
 
-    font.openFromFile("arial.ttf");
+    HRSRC res = FindResource(NULL, TEXT("FONT_ARIAL"), RT_RCDATA);
+    HGLOBAL mem = LoadResource(NULL, res);
+    void* data = LockResource(mem);
+    DWORD resource_size = SizeofResource(NULL, res);
+
+    if (!font.openFromMemory(data, resource_size))
+        std::cout << "Failed to load embedded Arial!\n";
     text.setFont(font);
     text.setCharacterSize(20);
     text.setFillColor(sf::Color::White);

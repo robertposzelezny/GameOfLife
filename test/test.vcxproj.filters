@@ -16,9 +16,6 @@
     <Filter Include="Pliki źródłowe\ui">
       <UniqueIdentifier>{da479d47-2509-4f06-a039-475cd83e7a69}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Pliki źródłowe\graphics">
-      <UniqueIdentifier>{282a570c-0e03-47d3-93ce-630042cb1870}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Pliki źródłowe\patterns">
       <UniqueIdentifier>{c3e844bd-3c8c-4592-bbdb-9671c6703bdc}</UniqueIdentifier>
     </Filter>
@@ -44,9 +41,6 @@
     </ClCompile>
     <ClCompile Include="UIManager.cpp">
       <Filter>Pliki źródłowe\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Pliki źródłowe\graphics</Filter>
     </ClCompile>
     <ClCompile Include="Grid.cpp">
       <Filter>Pliki źródłowe\core</Filter>
@@ -83,9 +77,6 @@
     <ClInclude Include="UIManager.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
     <ClInclude Include="Grid.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
@@ -98,5 +89,10 @@
     <ClInclude Include="InputField.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources.rc">
+      <Filter>Pliki zasobów</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

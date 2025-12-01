@@ -56,13 +56,18 @@ public:
         blockBottom = !blockBottom;
         wallBottom.setFillColor(blockBottom ? sf::Color(200, 50, 50) : sf::Color::Transparent);
     }
-
+    /**
+     * @brief Draws all four wall elements to the specified SFML window.
+     * @param window RenderWindow to draw walls on.
+     */
     void draw(sf::RenderWindow& window) {
         window.draw(wallLeft);
         window.draw(wallRight);
         window.draw(wallTop);
         window.draw(wallBottom);
     }
-
+    /**
+     * @brief Updates wall colors based on their active states.
+     */
     void updateColors();
 };

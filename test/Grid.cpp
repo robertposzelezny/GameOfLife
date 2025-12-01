@@ -4,19 +4,15 @@
 
 Grid::Grid(int n) : N(n), cells(n, std::vector<int>(n, 0)) {}
 
-extern bool blockLeft, blockRight, blockTop, blockBottom;
-
 void Grid::randomize() {
 	for (int y = 0; y < N; ++y)
 		for (int x = 0; x < N; ++x)
 			cells[y][x] = rand() % 2;
 }
 
-
 void Grid::clear() {
 	for (auto& r : cells) std::fill(r.begin(), r.end(), 0);
 }
-
 
 int Grid::countNeighbors(int x, int y) const {
 
@@ -53,7 +49,6 @@ int Grid::countNeighbors(int x, int y) const {
     }
     return ncount;
 }
-
 
 void Grid::step() {
 	std::vector<std::vector<int>> next = cells;

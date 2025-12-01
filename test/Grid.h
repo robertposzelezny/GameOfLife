@@ -5,9 +5,25 @@
 class Grid {
 public:
     Grid(int n);
+    /**
+     * @brief Randomizes all cells in the grid (alive or dead).
+     */
     void randomize();
+    /**
+     * @brief Clears the grid by setting all cells to dead.
+     */
     void clear();
+    /**
+     * @brief Counts the number of living neighbors around a given cell.
+     * @param x Column index of the cell.
+     * @param y Row index of the cell.
+     * @return Number of alive neighboring cells.
+     */
     int countNeighbors(int x, int y) const;
+    /**
+    * @brief Simulates next tick of Conway's game of life simulation.
+    *
+    */
     void step();
 
     std::vector<int>& operator[](int row) { return cells[row]; }

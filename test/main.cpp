@@ -11,7 +11,6 @@
 #include "Pattern.h"
 #include "Game.h"
 #include "Grid.h"
-#include "Renderer.h"
 #include "WallsManager.h"
 #include "InputField.h"
 
