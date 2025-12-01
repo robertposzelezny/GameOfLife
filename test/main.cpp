@@ -135,11 +135,6 @@ int main() {
                 }
 
                 else if (mx >= GRID_W && me->button == sf::Mouse::Button::Left) {
-
-                    auto clicked = [&](sf::RectangleShape& b) {
-                        return b.getGlobalBounds().contains(sf::Vector2f((float)mx, (float)my));
-                        };
-
                     if (Button* btn = uiManager.clicked(mx, my)) {
                         switch (uiManager.getCommand(btn))
                         {
