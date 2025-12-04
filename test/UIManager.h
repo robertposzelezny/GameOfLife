@@ -1,18 +1,19 @@
 #pragma once
 #include <vector>
 #include "Button.h"
+#include "Game.h"
 
-enum Command {
+enum class Command {
 	START_PAUSE,
 	RANDOMIZE,
 	CLEAR,
+
 	BLOCK_LEFT,
 	BLOCK_RIGHT,
 	BLOCK_TOP,
 	BLOCK_BOTTOM,
-	ADD_GLIDER,
-	ADD_BLOCK,
-	ADD_GOSPER_GUN
+
+	ADD_PATTERN
 };
 
 class UIManager {
@@ -45,23 +46,15 @@ public:
 	 * @param b Pointer to a Button.
 	 * @return Corresponding Command enum value.
 	 */
-	Command getCommand(Button* b) {
-		if (b == buttons[0]) return START_PAUSE;
-		if (b == buttons[1]) return RANDOMIZE;
-		if (b == buttons[2]) return CLEAR;
-		if (b == buttons[3]) return BLOCK_LEFT;
-		if (b == buttons[4]) return BLOCK_RIGHT;
-		if (b == buttons[5]) return BLOCK_TOP;
-		if (b == buttons[6]) return BLOCK_BOTTOM;
-		if (b == buttons[7]) return ADD_GLIDER;
-		if (b == buttons[8]) return ADD_BLOCK;
-		if (b == buttons[9]) return ADD_GOSPER_GUN;
-		return START_PAUSE;
-	}
+	Command getCommand(Button* b);
 	/**
 	 * @brief Resets all buttons to their default visual state.
 	 */
 	void resetButtons();
+
+	void resetPatternButtons();
+	void activatePatternButton(Game::PatternType type);
+	Button* getPatternButton();
 private:
 	int GRID_W;
 	int MENU_W;

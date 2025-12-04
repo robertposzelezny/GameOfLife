@@ -39,8 +39,24 @@ public:
     }
     WallsManager* getWalls() const { return walls; }
 
+    void runGame();
+
+    enum class PatternType {
+        None,
+        Glider,
+        Block,
+        GosperGun
+    };
+
+    PatternType selectedPattern = PatternType::None;
+
 private:
     Grid g;
     WallsManager* walls = nullptr;
     bool running = false;
+    int WIN_W = 1100;
+    int WIN_H = 800;
+    int MENU_W = 300;
+    int GRID_W = WIN_W - MENU_W;
 };
+

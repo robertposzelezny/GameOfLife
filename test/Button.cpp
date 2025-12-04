@@ -51,3 +51,10 @@ void Button::setActive(bool a)
 	isActive = a;
     shape.setFillColor(isActive ? sf::Color(80, 180, 80) : sf::Color(100, 100, 100));
 }
+
+void Button::setLabel(const std::string& text) {
+    label.setFont(font);
+    label.setString(text);
+    label.setCharacterSize(22);
+    label.setFillColor(sf::Color::White);
+}

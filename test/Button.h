@@ -46,4 +46,6 @@ public:
      *
      */
     bool active() const { return isActive; }
+
+    void setLabel(const std::string& text);
 };
