@@ -133,27 +133,43 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Acorn.cpp" />
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="Button.cpp" />
+    <ClCompile Include="CanadaGoose.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Glider.cpp" />
     <ClCompile Include="GosperGun.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="InputField.cpp" />
+    <ClCompile Include="LWSS.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Pattern.cpp" />
+    <ClCompile Include="Pentadecathlon.cpp" />
+    <ClCompile Include="Pulsar.cpp" />
+    <ClCompile Include="RPentomino.cpp" />
+    <ClCompile Include="SimkinGliderGun.cpp" />
+    <ClCompile Include="Spiral.cpp" />
     <ClCompile Include="UIManager.cpp" />
     <ClCompile Include="WallsManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Acorn.h" />
     <ClInclude Include="Block.h" />
     <ClInclude Include="Button.h" />
+    <ClInclude Include="CanadaGoose.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Glider.h" />
     <ClInclude Include="GosperGun.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="InputField.h" />
+    <ClInclude Include="LWSS.h" />
     <ClInclude Include="Pattern.h" />
+    <ClInclude Include="Pentadecathlon.h" />
+    <ClInclude Include="Pulsar.h" />
+    <ClInclude Include="RPentomino.h" />
+    <ClInclude Include="SimkinGliderGun.h" />
+    <ClInclude Include="Spiral.h" />
     <ClInclude Include="UIManager.h" />
     <ClInclude Include="WallsManager.h" />
   </ItemGroup>

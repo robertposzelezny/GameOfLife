@@ -63,3 +63,20 @@ void Grid::step() {
 	}
 	cells.swap(next);
 }
+
+void Grid::resize(int newN) {
+    std::vector<std::vector<int>> newCells(
+        newN, std::vector<int>(newN, 0)
+    );
+
+    int minN = std::min(N, newN);
+
+    for (int y = 0; y < minN; y++) {
+        for (int x = 0; x < minN; x++) {
+            newCells[y][x] = cells[y][x];
+        }
+    }
+
+    N = newN;
+    cells.swap(newCells);
+}

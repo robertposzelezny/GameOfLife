@@ -33,6 +33,7 @@ public:
 
     void setWalls(WallsManager* w) { walls = w; }
     WallsManager* getWalls() const { return walls; }
+    void resize(int newN);
 
 private:
     int N;

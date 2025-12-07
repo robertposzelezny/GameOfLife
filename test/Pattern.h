@@ -13,6 +13,8 @@ public:
 	 * @param offsetX x position of our grid
 	 * @param offsetY y position of our grid
 	 */
-	virtual void apply(Grid& g, int offsetX, int offsetY) const = 0;
+	void apply(Grid& g, int offsetX, int offsetY) const;
+protected:
+	std::vector<std::pair<int, int>> cells;
 };
 

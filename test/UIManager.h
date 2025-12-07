@@ -7,6 +7,7 @@ enum class Command {
 	START_PAUSE,
 	RANDOMIZE,
 	CLEAR,
+	None,
 
 	BLOCK_LEFT,
 	BLOCK_RIGHT,

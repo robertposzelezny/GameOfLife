@@ -44,6 +44,9 @@ void UIManager::createButtons() {
 
     add(new Button("Add Pattern (Block)",
         { GRID_W + 20.f, 530.f }, { MENU_W - 40.f, 50.f }));
+
+	add(new Button("Space - Start/Pause \n S - Next tick \n R - Randomize \n C - Clear \n Up arrow - Speed up \n Down arrow - Slow down \n Set new grid size:",
+		{ GRID_W + 20.f, 590.f }, { MENU_W - 40.f, 200.f }));
 }
 
 UIManager::~UIManager() {
@@ -72,7 +75,7 @@ Command UIManager::getCommand(Button* b) {
     if (lbl.rfind("Add Pattern", 0) == 0)
         return Command::ADD_PATTERN;
 
-    return Command::CLEAR;
+    return Command::None;
 }
 
 Button* UIManager::getPatternButton() {

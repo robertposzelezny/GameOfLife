@@ -5,17 +5,25 @@
 #include <iostream>
 
 #include "Button.h"
-#include "Glider.h"
-#include "Block.h"
-#include "GosperGun.h"
+#include "InputField.h"
 
 #include "Game.h"
 #include "Grid.h"
 #include "UIManager.h"
-#include "Pattern.h"
 #include "WallsManager.h"
-#include "InputField.h"
 
+#include "Pattern.h"
+#include "Glider.h"
+#include "Block.h"
+#include "GosperGun.h"
+#include "SimkinGliderGun.h"
+#include "LWSS.h"
+#include "Pulsar.h"
+#include "Pentadecathlon.h"
+#include "Acorn.h"
+#include "CanadaGoose.h"
+#include "Spiral.h"
+#include "RPentomino.h"
 
 Game::Game(int n) : g(n) {}
 
@@ -24,12 +32,11 @@ void Game::updateStep() { g.step(); }
 void Game::randomize() { g.randomize(); running = false; }
 void Game::clear() { g.clear(); running = false; }
 
-
 void Game::runGame() {
 
     srand(time(0));
 
-    int GRID_N = 60;
+    int GRID_N = 200;
 
     auto mode = sf::VideoMode::getFullscreenModes()[0];
 
@@ -45,15 +52,15 @@ void Game::runGame() {
     Game game(GRID_N);
     game.randomize();
 
-    float cellSize = GRID_W / static_cast<float>(GRID_N);
+    game.cellSize = GRID_W / static_cast<float>(GRID_N);
 
-    WallsManager walls(GRID_N, cellSize, GRID_W);
+    WallsManager walls(GRID_N, game.cellSize, GRID_W);
     game.setWalls(&walls);
 
     int msPerGen = 150;
     sf::Clock clock;
 
-    sf::RectangleShape cell(sf::Vector2f(cellSize - 1, cellSize - 1));
+    sf::RectangleShape cell(sf::Vector2f(game.cellSize - 1, game.cellSize - 1));
 
     sf::RectangleShape menuBg(sf::Vector2f(MENU_W, WIN_H));
     menuBg.setPosition(sf::Vector2f(GRID_W, 0));
@@ -62,13 +69,7 @@ void Game::runGame() {
     UIManager uiManager(GRID_W, MENU_W);
     uiManager.createButtons();
 
-    InputField gridSizeInput(sf::Vector2f(GRID_W + 20, 720), sf::Vector2f(MENU_W - 40, 50));
-
-    std::vector<PatternType> patternOrder = {
-        PatternType::Block,
-        PatternType::Glider,
-        PatternType::GosperGun
-    };
+    InputField gridSizeInput(sf::Vector2f(GRID_W + 20, 820), sf::Vector2f(MENU_W - 40, 50));
 
     auto findPatternIndex = [&](PatternType t) {
         for (size_t i = 0; i < patternOrder.size(); i++)
@@ -93,16 +94,15 @@ void Game::runGame() {
 
                     int newSize = gridSizeInput.getValue();
 
-                    if (newSize > 5 && newSize < 61) {
+                    if (newSize >= 5 && newSize <= 500) {
                         GRID_N = newSize;
 
-                        float cellSize = GRID_W / (float)GRID_N;
+                        game.grid().resize(GRID_N);
+                        game.cellSize = GRID_W / (float)GRID_N;
 
-                        game = Game(GRID_N);
-                        game.randomize();
-
-                        walls = WallsManager(GRID_N, cellSize, GRID_W);
+                        walls = WallsManager(GRID_N, game.cellSize, GRID_W);
                         game.setWalls(&walls);
+						cell.setSize(sf::Vector2f(game.cellSize - 1, game.cellSize - 1));
                     }
                 }
             }
@@ -138,6 +138,7 @@ void Game::runGame() {
                             if (idx >= (int)patternOrder.size()) idx = 0;
 
                             selectedPattern = patternOrder[idx];
+                            lastPattern = selectedPattern;
                             Button* pbtn = uiManager.getPatternButton();
 
                             if (pbtn)
@@ -148,6 +149,22 @@ void Game::runGame() {
                                     pbtn->setLabel("Add Pattern (Glider)");
                                 else if (selectedPattern == PatternType::GosperGun)
                                     pbtn->setLabel("Add Pattern (Gosper Gun)");
+								else if (selectedPattern == PatternType::SimkinGliderGun)
+									pbtn->setLabel("Add Pattern (SGG)");
+                                else if (selectedPattern == PatternType::LWSS)
+                                    pbtn->setLabel("Add Pattern (LWSS)");
+                                else if (selectedPattern == PatternType::Pulsar)
+                                    pbtn->setLabel("Add Pattern (Pulsar)");
+                                else if (selectedPattern == PatternType::Pentadecathlon)
+                                    pbtn->setLabel("Add Pattern (Pentadecathlon)");
+                                else if (selectedPattern == PatternType::Acorn)
+                                    pbtn->setLabel("Add Pattern (Acorn)");
+                                else if (selectedPattern == PatternType::CanadaGoose)
+                                    pbtn->setLabel("Add Pattern (CanadaGoose)");
+                                else if (selectedPattern == PatternType::Spiral)
+                                    pbtn->setLabel("Add Pattern (Spiral)");
+                                else if (selectedPattern == PatternType::RPentomino)
+                                    pbtn->setLabel("Add Pattern (R-Pentomino)");
                             }
                         }
                     }
@@ -163,13 +180,13 @@ void Game::runGame() {
 
                 if (me->button == sf::Mouse::Button::Left &&
                     mx >= 0 && mx < GRID_W &&
-                    my >= 0 && my < GRID_N * cellSize)
+                    my >= 0 && my < GRID_N * game.cellSize)
                 {
                     sf::Vector2i mp = sf::Mouse::getPosition(window);
                     sf::Vector2f wp = window.mapPixelToCoords(mp);
 
-                    int gx = wp.x / cellSize;
-                    int gy = wp.y / cellSize;
+                    int gx = wp.x / game.cellSize;
+                    int gy = wp.y / game.cellSize;
 
                     if (gx >= 0 && gx < GRID_N && gy >= 0 && gy < GRID_N)
                     {
@@ -186,6 +203,30 @@ void Game::runGame() {
                         }
                         else if (selectedPattern == PatternType::GosperGun) {
                             GosperGun().apply(grid, gy, gx);
+                        }
+                        else if (selectedPattern == PatternType::SimkinGliderGun) {
+                            SimkinGliderGun().apply(grid, gy, gx);
+                        }
+                        else if (selectedPattern == PatternType::LWSS) {
+                            LWSS().apply(grid, gy, gx);
+                        }
+                        else if (selectedPattern == PatternType::Pulsar) {
+                            Pulsar().apply(grid, gy, gx);
+                        }
+                        else if (selectedPattern == PatternType::Pentadecathlon) {
+                            Pentadecathlon().apply(grid, gy, gx);
+                        }
+                        else if (selectedPattern == PatternType::Acorn) {
+                            Acorn().apply(grid, gy, gx);
+                        }
+                        else if (selectedPattern == PatternType::CanadaGoose) {
+                            CanadaGoose().apply(grid, gy, gx);
+                        }
+                        else if (selectedPattern == PatternType::Spiral) {
+                            Spiral().apply(grid, gy, gx);
+                        }
+                        else if (selectedPattern == PatternType::RPentomino) {
+                            RPentomino().apply(grid, gy, gx);
                         }
                     }
                 }
@@ -231,7 +272,7 @@ void Game::runGame() {
                             }
                             else {
                                 btn->setActive(true);
-                                selectedPattern = PatternType::Block;
+                                selectedPattern = lastPattern;
                             }
                             break;
 
@@ -242,20 +283,18 @@ void Game::runGame() {
             }
         }
 
-        // Update step
         if (game.isRunning() && clock.getElapsedTime().asMilliseconds() > msPerGen) {
             game.updateStep();
             clock.restart();
         }
 
-        // Drawing
         window.clear(sf::Color(30, 30, 30));
         walls.draw(window);
 
         for (int y = 0; y < GRID_N; y++) {
             for (int x = 0; x < GRID_N; x++) {
                 if (game.getGrid()[y][x] == 1) {
-                    cell.setPosition({ (float)x * cellSize, (float)y * cellSize });
+                    cell.setPosition({ (float)x * game.cellSize, (float)y * game.cellSize });
                     cell.setFillColor(sf::Color::White);
                     window.draw(cell);
                 }

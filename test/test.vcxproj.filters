@@ -22,6 +22,9 @@
     <Filter Include="Pliki źródłowe\core">
       <UniqueIdentifier>{763b05e7-25f0-46e7-bbc0-29f94e98ef85}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Pliki nagłówkowe\patterns">
+      <UniqueIdentifier>{35c54448-ec81-489c-838a-22cc4009ecc5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Block.cpp">
@@ -57,21 +60,33 @@
     <ClCompile Include="InputField.cpp">
       <Filter>Pliki źródłowe\ui</Filter>
     </ClCompile>
+    <ClCompile Include="SimkinGliderGun.cpp">
+      <Filter>Pliki źródłowe\patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="LWSS.cpp">
+      <Filter>Pliki źródłowe\patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="Pulsar.cpp">
+      <Filter>Pliki źródłowe\patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="Pentadecathlon.cpp">
+      <Filter>Pliki źródłowe\patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="Acorn.cpp">
+      <Filter>Pliki źródłowe\patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="CanadaGoose.cpp">
+      <Filter>Pliki źródłowe\patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="Spiral.cpp">
+      <Filter>Pliki źródłowe\patterns</Filter>
+    </ClCompile>
+    <ClCompile Include="RPentomino.cpp">
+      <Filter>Pliki źródłowe\patterns</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Button.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="Pattern.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="Glider.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="Block.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="GosperGun.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="UIManager.h">
@@ -88,6 +103,42 @@
     </ClInclude>
     <ClInclude Include="InputField.h">
       <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="Acorn.h">
+      <Filter>Pliki nagłówkowe\patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="Block.h">
+      <Filter>Pliki nagłówkowe\patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="Glider.h">
+      <Filter>Pliki nagłówkowe\patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="CanadaGoose.h">
+      <Filter>Pliki nagłówkowe\patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="GosperGun.h">
+      <Filter>Pliki nagłówkowe\patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="LWSS.h">
+      <Filter>Pliki nagłówkowe\patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="Pattern.h">
+      <Filter>Pliki nagłówkowe\patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="Pentadecathlon.h">
+      <Filter>Pliki nagłówkowe\patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="Pulsar.h">
+      <Filter>Pliki nagłówkowe\patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="RPentomino.h">
+      <Filter>Pliki nagłówkowe\patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="SimkinGliderGun.h">
+      <Filter>Pliki nagłówkowe\patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="Spiral.h">
+      <Filter>Pliki nagłówkowe\patterns</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -45,10 +45,34 @@ public:
         None,
         Glider,
         Block,
-        GosperGun
+        GosperGun,
+		SimkinGliderGun,
+        LWSS,
+		Pulsar,
+        Pentadecathlon,
+        Acorn,
+        CanadaGoose,
+        Spiral,
+		RPentomino
     };
 
     PatternType selectedPattern = PatternType::None;
+    PatternType lastPattern = PatternType::Block;
+
+    std::vector<PatternType> patternOrder = {
+        PatternType::Block,
+        PatternType::Glider,
+        PatternType::GosperGun,
+        PatternType::SimkinGliderGun,
+        PatternType::LWSS,
+        PatternType::Pulsar,
+        PatternType::Pentadecathlon,
+        PatternType::Acorn,
+        PatternType::CanadaGoose,
+        PatternType::Spiral,
+        PatternType::RPentomino
+    };
+    float cellSize = 0.f;
 
 private:
     Grid g;
