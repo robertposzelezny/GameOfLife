@@ -1,13 +1,10 @@
-// InputField.cpp
 #include "InputField.h"
 #include <cctype>
 
-// Konstruktor domyœlny - teraz nie wywala b³êdu sf::Text
 InputField::InputField() : active(false) {
     text = nullptr;
 }
 
-// Konstruktor w³aœciwy
 InputField::InputField(const sf::Vector2f& pos, const sf::Vector2f& size, sf::Font& sharedFont) {
     box.setSize(size);
     box.setPosition(pos);
@@ -15,7 +12,6 @@ InputField::InputField(const sf::Vector2f& pos, const sf::Vector2f& size, sf::Fo
     box.setOutlineColor(sf::Color::White);
     box.setOutlineThickness(2);
 
-    // Tworzymy obiekt sf::Text dynamicznie, przekazuj¹c czcionkê
     text = std::make_unique<sf::Text>(sharedFont, "");
     text->setCharacterSize(20);
     text->setFillColor(sf::Color::White);
@@ -24,7 +20,7 @@ InputField::InputField(const sf::Vector2f& pos, const sf::Vector2f& size, sf::Fo
 
 void InputField::draw(sf::RenderWindow& window) {
     window.draw(box);
-    if (text) { // Rysuj tylko jeœli tekst istnieje
+    if (text) {
         window.draw(*text);
     }
 }
@@ -36,14 +32,14 @@ void InputField::handleEvent(const sf::Event& ev, sf::RenderWindow& window) {
         box.setFillColor(active ? sf::Color(120, 120, 120) : sf::Color(80, 80, 80));
     }
 
-    if (!active || !text) return; // Zabezpieczenie przed brakiem tekstu
+    if (!active || !text) return;
 
     if (auto* textEv = ev.getIf<sf::Event::TextEntered>()) {
         char c = (char)textEv->unicode;
         if (std::isdigit(c)) {
             content.push_back(c);
         }
-        else if (c == 8) { // Backspace
+        else if (c == 8) {
             if (!content.empty()) content.pop_back();
         }
         text->setString(content);

@@ -27,8 +27,6 @@ public:
     void step();
 
     std::vector<std::vector<int>>& getCells() { return cells; }
-
-    // Wersja const (dobra praktyka dla rysowania)
     const std::vector<std::vector<int>>& getCells() const { return cells; }
 
     std::vector<int>& operator[](int row) { return cells[row]; }

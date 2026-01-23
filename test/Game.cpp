@@ -12,7 +12,6 @@
 #include "UIManager.h"
 #include "WallsManager.h"
 
-// Dołączanie wzorów
 #include "Pattern.h"
 #include "Glider.h"
 #include "Block.h"
@@ -26,11 +25,11 @@
 #include "Spiral.h"
 #include "RPentomino.h"
 
-// --- IMPLEMENTACJA BRAKUJĄCYCH METOD (NAPRAWA LNK2019) ---
+#include "ARIAL (1).h"
 
 Game::Game(int n) : g(n), gridSizeInput() {
-    if (!gameFont.openFromFile("arial.ttf")) {
-        std::cout << "Blad: Nie mozna zaladowac arial.ttf" << std::endl;
+    if (!gameFont.openFromMemory(ARIAL, ARIAL_SIZE)) {
+        std::cerr << "Blad krytyczny: Nie udalo sie zaladowac czcionki z zasobow!" << std::endl;
     }
     running = false;
     cellSize = 0.f;
@@ -38,18 +37,15 @@ Game::Game(int n) : g(n), gridSizeInput() {
     lastPattern = PatternType::Block;
 }
 
-// Ta metoda naprawia Twój błąd linkera
 void Game::updateStep() {
     g.step();
 }
 
-// Ta metoda pozwala resetować siatkę
 void Game::randomize() {
     g.randomize();
     running = false;
 }
 
-// Ta metoda czyści planszę
 void Game::clear() {
     g.clear();
     running = false;
@@ -58,8 +54,6 @@ void Game::clear() {
 Grid& Game::grid() {
     return g;
 }
-
-// --- GŁÓWNA LOGIKA GRY ---
 
 void Game::runGame() {
     srand(static_cast<unsigned int>(time(0)));
@@ -70,23 +64,19 @@ void Game::runGame() {
 
     WIN_W = (float)window.getSize().x;
     WIN_H = (float)window.getSize().y;
-    MENU_W = WIN_W * 0.25f; // Menu na 25% szerokości
+    MENU_W = WIN_W * 0.25f;
     GRID_W = WIN_W - MENU_W;
 
     int GRID_N = 100;
     g.resize(GRID_N);
 
-    // 2. KLUCZOWA POPRAWKA: Obliczamy cellSize tak, by siatka nie wystawała poza spód okna
     float sizeW = GRID_W / static_cast<float>(GRID_N);
     float sizeH = WIN_H / static_cast<float>(GRID_N);
-    // ... wewnątrz runGame() po obliczeniu cellSize ...
     cellSize = std::min(GRID_W / (float)GRID_N, WIN_H / (float)GRID_N);
 
-    // Obliczamy ile miejsca zostaje na górze i na dole
     float gridHeight = GRID_N * cellSize;
     float offsetY = (WIN_H - gridHeight) / 2.0f;
 
-    // Przekazujemy offsetY do WallsManager (dodaj ten argument w konstruktorze)
     WallsManager wallsObj(GRID_N, cellSize, (int)GRID_W, offsetY);
     setWalls(&wallsObj);
 
@@ -128,24 +118,15 @@ void Game::runGame() {
                     if (newSize >= 5 && newSize <= 500) {
                         GRID_N = newSize;
                         g.resize(GRID_N);
-
-                        // 1. Ponowne przeliczenie cellSize (musi uwzględniać wysokość WIN_H!)
                         cellSize = std::min(GRID_W / (float)GRID_N, WIN_H / (float)GRID_N);
-
-                        // 2. Ponowne obliczenie offsetY (wycentrowanie pionowe)
                         float gridHeight = GRID_N * cellSize;
                         offsetY = (WIN_H - gridHeight) / 2.0f;
 
-                        // 3. Re-inicjalizacja WallsManager z nowym offsetY i grubością
-                        // Upewnij się, że przekazujesz (int)GRID_W oraz obliczone offsetY
                         wallsObj = WallsManager(GRID_N, cellSize, (int)GRID_W, offsetY);
-
-                        // 4. Powiązanie siatki z nowym managerem ścian
                         setWalls(&wallsObj);
                     }
                     break;
                 }
-
                 case K::Left:
                 case K::Right:
                     if (selectedPattern != PatternType::None) {
@@ -255,7 +236,6 @@ void Game::runGame() {
         for (int y = 0; y < (int)drawGrid.size(); y++) {
             for (int x = 0; x < (int)drawGrid[y].size(); x++) {
                 if (drawGrid[y][x] == 1) {
-                    // cellRect musi reagować na zmianę offsetY po Enterze
                     cellRect.setPosition({ x * cellSize, y * cellSize + offsetY });
                     window.draw(cellRect);
                 }

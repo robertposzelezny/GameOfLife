@@ -14,9 +14,8 @@ void Grid::clear() {
 	for (auto& r : cells) std::fill(r.begin(), r.end(), 0);
 }
 
-// Zmodyfikowana funkcja liczenia s¹siadów
 int Grid::countNeighbors(int x, int y) const {
-    int currentN = static_cast<int>(cells.size()); // Pobieramy faktyczny rozmiar
+    int currentN = static_cast<int>(cells.size());
     int ncount = 0;
 
     for (int dy = -1; dy <= 1; ++dy) {
@@ -26,7 +25,6 @@ int Grid::countNeighbors(int x, int y) const {
             int nx = x + dx;
             int ny = y + dy;
 
-            // Logika œcian i zawijania (Torus)
             if (nx < 0) {
                 if (walls && walls->left()) continue;
                 nx = (nx + currentN) % currentN;
@@ -44,15 +42,12 @@ int Grid::countNeighbors(int x, int y) const {
                 if (walls && walls->bottom()) continue;
                 ny = ny % currentN;
             }
-
-            // Dodatkowe zabezpieczenie przed odczytem
             ncount += cells[ny][nx];
         }
     }
     return ncount;
 }
 
-// Zmodyfikowana funkcja kroku - u¿ywa faktycznego rozmiaru wektora
 void Grid::step() {
     int currentN = static_cast<int>(cells.size());
     std::vector<std::vector<int>> next = cells;

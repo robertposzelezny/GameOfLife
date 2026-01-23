@@ -140,6 +140,9 @@
     <ClInclude Include="Spiral.h">
       <Filter>Pliki nagłówkowe\patterns</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Downloads\ARIAL (1).h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resources.rc">

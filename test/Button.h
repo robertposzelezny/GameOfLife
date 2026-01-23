@@ -6,12 +6,9 @@ class Button {
 private:
     sf::RectangleShape shape;
     sf::Text label;
-    // USUNIÊTO: sf::Font font; (czcionka jest teraz wspó³dzielona)
-
     bool isActive = false;
 
 public:
-    // Konstruktor przyjmuje teraz czcionkê przez referencjê
     Button(const std::string& text, const sf::Vector2f& pos, const sf::Vector2f& size, sf::Font& sharedFont);
 
     /**

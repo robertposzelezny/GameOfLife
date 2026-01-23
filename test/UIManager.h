@@ -3,7 +3,6 @@
 #include <SFML/Graphics.hpp>
 #include "Button.h"
 
-// Definicja komend dla przycisków
 enum class Command {
     None, START_PAUSE, RANDOMIZE, CLEAR,
     BLOCK_LEFT, BLOCK_RIGHT, BLOCK_TOP, BLOCK_BOTTOM,
@@ -18,10 +17,10 @@ private:
 
 public:
     UIManager(int gridW, int menuW);
-    ~UIManager(); // Destruktor do czyszczenia pamiêci (delete)
+    ~UIManager();
 
     void add(Button* b);
-    void createButtons(sf::Font& sharedFont); // Tutaj dodaliœmy parametr
+    void createButtons(sf::Font& sharedFont);
     void draw(sf::RenderWindow& window);
 
     Button* clicked(float mx, float my);

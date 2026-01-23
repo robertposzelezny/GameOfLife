@@ -19,7 +19,7 @@ private:
 public:
     WallsManager(int gridN, float cellSize, int gridW, float offsetY = 0) : gridN(gridN), cellSize(cellSize) {
         float totalSize = (float)gridN * cellSize;
-        float thickness = 2.0f; // U¿yj sta³ej gruboœci zamiast cellSize!
+        float thickness = 2.0f;
 
         wallTop.setSize({ totalSize, thickness });
         wallTop.setPosition({ 0, offsetY });

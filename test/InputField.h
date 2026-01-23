@@ -1,8 +1,7 @@
-// InputField.h
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <string>
-#include <memory> // Potrzebne dla unique_ptr
+#include <memory>
 
 class InputField {
 public:
@@ -15,7 +14,7 @@ public:
 
 private:
     sf::RectangleShape box;
-    std::unique_ptr<sf::Text> text; // Zmiana na wskaünik
+    std::unique_ptr<sf::Text> text;
     bool active = false;
     std::string content;
 };
