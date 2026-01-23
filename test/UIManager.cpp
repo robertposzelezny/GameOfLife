@@ -3,6 +3,12 @@
 UIManager::UIManager(int gridW, int menuW)
     : GRID_W(gridW), MENU_W(menuW) {}
 
+UIManager::~UIManager() {
+    for (auto b : buttons)
+        delete b;
+    buttons.clear();
+}
+
 void UIManager::add(Button* b) {
     buttons.push_back(b);
 }
@@ -19,39 +25,33 @@ void UIManager::draw(sf::RenderWindow& window) {
         b->draw(window);
 }
 
-void UIManager::createButtons() {
-
+void UIManager::createButtons(sf::Font& sharedFont) {
     add(new Button("Start/Pause (Space)",
-        { GRID_W + 20.f, 50.f }, { MENU_W - 40.f, 50.f }));
+        { (float)GRID_W + 20.f, 50.f }, { (float)MENU_W - 40.f, 50.f }, sharedFont));
 
     add(new Button("Randomize (R)",
-        { GRID_W + 20.f, 130.f }, { MENU_W - 40.f, 50.f }));
+        { (float)GRID_W + 20.f, 130.f }, { (float)MENU_W - 40.f, 50.f }, sharedFont));
 
     add(new Button("Clear (C)",
-        { GRID_W + 20.f, 210.f }, { MENU_W - 40.f, 50.f }));
+        { (float)GRID_W + 20.f, 210.f }, { (float)MENU_W - 40.f, 50.f }, sharedFont));
 
     add(new Button("Block Left Wall",
-        { GRID_W + 20.f, 290.f }, { MENU_W - 40.f, 50.f }));
+        { (float)GRID_W + 20.f, 290.f }, { (float)MENU_W - 40.f, 50.f }, sharedFont));
 
     add(new Button("Block Right Wall",
-        { GRID_W + 20.f, 350.f }, { MENU_W - 40.f, 50.f }));
+        { (float)GRID_W + 20.f, 350.f }, { (float)MENU_W - 40.f, 50.f }, sharedFont));
 
     add(new Button("Block Top Wall",
-        { GRID_W + 20.f, 410.f }, { MENU_W - 40.f, 50.f }));
+        { (float)GRID_W + 20.f, 410.f }, { (float)MENU_W - 40.f, 50.f }, sharedFont));
 
     add(new Button("Block Bottom Wall",
-        { GRID_W + 20.f, 470.f }, { MENU_W - 40.f, 50.f }));
+        { (float)GRID_W + 20.f, 470.f }, { (float)MENU_W - 40.f, 50.f }, sharedFont));
 
     add(new Button("Add Pattern (Block)",
-        { GRID_W + 20.f, 530.f }, { MENU_W - 40.f, 50.f }));
+        { (float)GRID_W + 20.f, 530.f }, { (float)MENU_W - 40.f, 50.f }, sharedFont));
 
-	add(new Button("Space - Start/Pause \n S - Next tick \n R - Randomize \n C - Clear \n Up arrow - Speed up \n Down arrow - Slow down \n Set new grid size:",
-		{ GRID_W + 20.f, 590.f }, { MENU_W - 40.f, 200.f }));
-}
-
-UIManager::~UIManager() {
-    for (auto b : buttons)
-        delete b;
+    add(new Button("Space - Start/Pause \n S - Next tick \n R - Randomize \n C - Clear \n Up arrow - Speed up \n Down arrow - Slow down \n ESC - Close App \n InputField[Below] - Set new grid size ",
+        { (float)GRID_W + 20.f, 590.f }, { (float)MENU_W - 40.f, 200.f }, sharedFont));
 }
 
 void UIManager::resetButtons() {
@@ -61,6 +61,7 @@ void UIManager::resetButtons() {
 }
 
 Command UIManager::getCommand(Button* b) {
+    if (!b) return Command::None;
     std::string lbl = b->getLabel();
 
     if (lbl == "Start/Pause (Space)") return Command::START_PAUSE;

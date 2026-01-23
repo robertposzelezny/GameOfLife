@@ -17,22 +17,21 @@ private:
     sf::RectangleShape wallBottom;
 
 public:
-    WallsManager(int gridN, float cellSize, int gridW) : gridN(gridN), cellSize(cellSize) {
-        wallLeft.setSize({ cellSize, gridN * cellSize });
-        wallLeft.setPosition({ 0, 0 });
-        wallLeft.setFillColor(sf::Color::Transparent);
+    WallsManager(int gridN, float cellSize, int gridW, float offsetY = 0) : gridN(gridN), cellSize(cellSize) {
+        float totalSize = (float)gridN * cellSize;
+        float thickness = 2.0f; // U¿yj sta³ej gruboœci zamiast cellSize!
 
-        wallRight.setSize({ cellSize, gridN * cellSize });
-        wallRight.setPosition({ gridW - cellSize, 0 });
-        wallRight.setFillColor(sf::Color::Transparent);
+        wallTop.setSize({ totalSize, thickness });
+        wallTop.setPosition({ 0, offsetY });
 
-        wallTop.setSize({ gridN * cellSize, cellSize });
-        wallTop.setPosition({ 0, 0 });
-        wallTop.setFillColor(sf::Color::Transparent);
+        wallBottom.setSize({ totalSize, thickness });
+        wallBottom.setPosition({ 0, offsetY + totalSize - thickness });
 
-        wallBottom.setSize({ gridN * cellSize, cellSize });
-        wallBottom.setPosition({ 0, gridN * cellSize - cellSize });
-        wallBottom.setFillColor(sf::Color::Transparent);
+        wallLeft.setSize({ thickness, totalSize });
+        wallLeft.setPosition({ 0, offsetY });
+
+        wallRight.setSize({ thickness, totalSize });
+        wallRight.setPosition({ totalSize - thickness, offsetY });
     }
 
     bool left() const { return blockLeft; }

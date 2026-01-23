@@ -3,15 +3,16 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <algorithm>
 
 #include "Button.h"
 #include "InputField.h"
-
 #include "Game.h"
 #include "Grid.h"
 #include "UIManager.h"
 #include "WallsManager.h"
 
+// Dołączanie wzorów
 #include "Pattern.h"
 #include "Glider.h"
 #include "Block.h"
@@ -25,51 +26,73 @@
 #include "Spiral.h"
 #include "RPentomino.h"
 
-Game::Game(int n) : g(n) {}
+// --- IMPLEMENTACJA BRAKUJĄCYCH METOD (NAPRAWA LNK2019) ---
 
-Grid& Game::grid() { return g; }
-void Game::updateStep() { g.step(); }
-void Game::randomize() { g.randomize(); running = false; }
-void Game::clear() { g.clear(); running = false; }
+Game::Game(int n) : g(n), gridSizeInput() {
+    if (!gameFont.openFromFile("arial.ttf")) {
+        std::cout << "Blad: Nie mozna zaladowac arial.ttf" << std::endl;
+    }
+    running = false;
+    cellSize = 0.f;
+    selectedPattern = PatternType::None;
+    lastPattern = PatternType::Block;
+}
+
+// Ta metoda naprawia Twój błąd linkera
+void Game::updateStep() {
+    g.step();
+}
+
+// Ta metoda pozwala resetować siatkę
+void Game::randomize() {
+    g.randomize();
+    running = false;
+}
+
+// Ta metoda czyści planszę
+void Game::clear() {
+    g.clear();
+    running = false;
+}
+
+Grid& Game::grid() {
+    return g;
+}
+
+// --- GŁÓWNA LOGIKA GRY ---
 
 void Game::runGame() {
+    srand(static_cast<unsigned int>(time(0)));
 
-    srand(time(0));
-
-    int GRID_N = 200;
-
-    auto mode = sf::VideoMode::getFullscreenModes()[0];
-
-    WIN_W = mode.size.x;
-    WIN_H = mode.size.y;
-
-    MENU_W = WIN_W * 0.20f;
-    GRID_W = WIN_W - MENU_W;
-
-    sf::RenderWindow window(mode, "Game of Life", sf::Style::Close);
+    auto mode = sf::VideoMode::getDesktopMode();
+    sf::RenderWindow window(mode, "Game of Life", sf::Style::None);
     window.setFramerateLimit(60);
 
-    Game game(GRID_N);
-    game.randomize();
+    WIN_W = (float)window.getSize().x;
+    WIN_H = (float)window.getSize().y;
+    MENU_W = WIN_W * 0.25f; // Menu na 25% szerokości
+    GRID_W = WIN_W - MENU_W;
 
-    game.cellSize = GRID_W / static_cast<float>(GRID_N);
+    int GRID_N = 100;
+    g.resize(GRID_N);
 
-    WallsManager walls(GRID_N, game.cellSize, GRID_W);
-    game.setWalls(&walls);
+    // 2. KLUCZOWA POPRAWKA: Obliczamy cellSize tak, by siatka nie wystawała poza spód okna
+    float sizeW = GRID_W / static_cast<float>(GRID_N);
+    float sizeH = WIN_H / static_cast<float>(GRID_N);
+    // ... wewnątrz runGame() po obliczeniu cellSize ...
+    cellSize = std::min(GRID_W / (float)GRID_N, WIN_H / (float)GRID_N);
 
-    int msPerGen = 150;
-    sf::Clock clock;
+    // Obliczamy ile miejsca zostaje na górze i na dole
+    float gridHeight = GRID_N * cellSize;
+    float offsetY = (WIN_H - gridHeight) / 2.0f;
 
-    sf::RectangleShape cell(sf::Vector2f(game.cellSize - 1, game.cellSize - 1));
-
-    sf::RectangleShape menuBg(sf::Vector2f(MENU_W, WIN_H));
-    menuBg.setPosition(sf::Vector2f(GRID_W, 0));
-    menuBg.setFillColor(sf::Color(50, 50, 50));
+    // Przekazujemy offsetY do WallsManager (dodaj ten argument w konstruktorze)
+    WallsManager wallsObj(GRID_N, cellSize, (int)GRID_W, offsetY);
+    setWalls(&wallsObj);
 
     UIManager uiManager(GRID_W, MENU_W);
-    uiManager.createButtons();
-
-    InputField gridSizeInput(sf::Vector2f(GRID_W + 20, 820), sf::Vector2f(MENU_W - 40, 50));
+    uiManager.createButtons(gameFont);
+    this->gridSizeInput = InputField(sf::Vector2f(GRID_W + 20, WIN_H - 100), sf::Vector2f(MENU_W - 40, 40), gameFont);
 
     auto findPatternIndex = [&](PatternType t) {
         for (size_t i = 0; i < patternOrder.size(); i++)
@@ -77,232 +100,170 @@ void Game::runGame() {
         return -1;
         };
 
-    while (window.isOpen()) {
+    sf::Clock clock;
+    int msPerGen = 150;
 
+    while (window.isOpen()) {
         while (auto ev = window.pollEvent()) {
 
-            if (ev->getIf<sf::Event::TextEntered>()) {
-                gridSizeInput.handleEvent(*ev, window);
-            }
+            gridSizeInput.handleEvent(*ev, window);
 
-            if (ev->getIf<sf::Event::MouseButtonPressed>()) {
-                gridSizeInput.handleEvent(*ev, window);
-            }
-
-            if (auto* ke2 = ev->getIf<sf::Event::KeyPressed>()) {
-                if (ke2->code == sf::Keyboard::Key::Enter) {
-
-                    int newSize = gridSizeInput.getValue();
-
-                    if (newSize >= 5 && newSize <= 500) {
-                        GRID_N = newSize;
-
-                        game.grid().resize(GRID_N);
-                        game.cellSize = GRID_W / (float)GRID_N;
-
-                        walls = WallsManager(GRID_N, game.cellSize, GRID_W);
-                        game.setWalls(&walls);
-						cell.setSize(sf::Vector2f(game.cellSize - 1, game.cellSize - 1));
-                    }
-                }
-            }
-
-            if (ev->getIf<sf::Event::Closed>()) {
+            if (ev->is<sf::Event::Closed>()) {
                 window.close();
                 break;
             }
-            else if (auto* ke = ev->getIf<sf::Event::KeyPressed>()) {
-                using K = sf::Keyboard::Key;
 
-                switch (ke->code)
-                {
-                case K::Space: game.toggleRunning(); break;
-                case K::R: game.randomize(); break;
-                case K::C: game.clear(); break;
-                case K::S: game.updateStep(); break;
+            if (auto* ke = ev->getIf<sf::Event::KeyPressed>()) {
+                using K = sf::Keyboard::Key;
+                switch (ke->code) {
+                case K::Space: toggleRunning(); break;
+                case K::R: randomize(); break;
+                case K::C: clear(); break;
+                case K::S: updateStep(); break;
                 case K::Up: msPerGen = std::max(10, msPerGen - 20); break;
                 case K::Down: msPerGen += 20; break;
+                case K::Escape:window.close();break;
+                case K::Enter: {
+                    int newSize = gridSizeInput.getValue();
+                    if (newSize >= 5 && newSize <= 500) {
+                        GRID_N = newSize;
+                        g.resize(GRID_N);
+
+                        // 1. Ponowne przeliczenie cellSize (musi uwzględniać wysokość WIN_H!)
+                        cellSize = std::min(GRID_W / (float)GRID_N, WIN_H / (float)GRID_N);
+
+                        // 2. Ponowne obliczenie offsetY (wycentrowanie pionowe)
+                        float gridHeight = GRID_N * cellSize;
+                        offsetY = (WIN_H - gridHeight) / 2.0f;
+
+                        // 3. Re-inicjalizacja WallsManager z nowym offsetY i grubością
+                        // Upewnij się, że przekazujesz (int)GRID_W oraz obliczone offsetY
+                        wallsObj = WallsManager(GRID_N, cellSize, (int)GRID_W, offsetY);
+
+                        // 4. Powiązanie siatki z nowym managerem ścian
+                        setWalls(&wallsObj);
+                    }
+                    break;
+                }
+
                 case K::Left:
                 case K::Right:
-
-                    if (selectedPattern != PatternType::None)
-                    {
+                    if (selectedPattern != PatternType::None) {
                         int idx = findPatternIndex(selectedPattern);
-
-                        if (idx != -1)
-                        {
-                            if (ke->code == K::Right) idx++;
-                            else idx--;
-
-                            if (idx < 0) idx = patternOrder.size() - 1;
+                        if (idx != -1) {
+                            if (ke->code == K::Right) idx++; else idx--;
+                            if (idx < 0) idx = (int)patternOrder.size() - 1;
                             if (idx >= (int)patternOrder.size()) idx = 0;
 
                             selectedPattern = patternOrder[idx];
                             lastPattern = selectedPattern;
-                            Button* pbtn = uiManager.getPatternButton();
 
-                            if (pbtn)
-                            {
-                                if (selectedPattern == PatternType::Block)
-                                    pbtn->setLabel("Add Pattern (Block)");
-                                else if (selectedPattern == PatternType::Glider)
-                                    pbtn->setLabel("Add Pattern (Glider)");
-                                else if (selectedPattern == PatternType::GosperGun)
-                                    pbtn->setLabel("Add Pattern (Gosper Gun)");
-								else if (selectedPattern == PatternType::SimkinGliderGun)
-									pbtn->setLabel("Add Pattern (SGG)");
-                                else if (selectedPattern == PatternType::LWSS)
-                                    pbtn->setLabel("Add Pattern (LWSS)");
-                                else if (selectedPattern == PatternType::Pulsar)
-                                    pbtn->setLabel("Add Pattern (Pulsar)");
-                                else if (selectedPattern == PatternType::Pentadecathlon)
-                                    pbtn->setLabel("Add Pattern (Pentadecathlon)");
-                                else if (selectedPattern == PatternType::Acorn)
-                                    pbtn->setLabel("Add Pattern (Acorn)");
-                                else if (selectedPattern == PatternType::CanadaGoose)
-                                    pbtn->setLabel("Add Pattern (CanadaGoose)");
-                                else if (selectedPattern == PatternType::Spiral)
-                                    pbtn->setLabel("Add Pattern (Spiral)");
-                                else if (selectedPattern == PatternType::RPentomino)
-                                    pbtn->setLabel("Add Pattern (R-Pentomino)");
+                            Button* pbtn = uiManager.getPatternButton();
+                            if (pbtn) {
+                                std::string name = "Unknown";
+                                if (selectedPattern == PatternType::Block) name = "Block";
+                                else if (selectedPattern == PatternType::Glider) name = "Glider";
+                                else if (selectedPattern == PatternType::GosperGun) name = "Gosper Gun";
+                                else if (selectedPattern == PatternType::SimkinGliderGun) name = "SGG";
+                                else if (selectedPattern == PatternType::LWSS) name = "LWSS";
+                                else if (selectedPattern == PatternType::Pulsar) name = "Pulsar";
+                                else if (selectedPattern == PatternType::Pentadecathlon) name = "Pentadecathlon";
+                                else if (selectedPattern == PatternType::Acorn) name = "Acorn";
+                                else if (selectedPattern == PatternType::CanadaGoose) name = "CanadaGoose";
+                                else if (selectedPattern == PatternType::Spiral) name = "Spiral";
+                                else if (selectedPattern == PatternType::RPentomino) name = "R-Pentomino";
+                                pbtn->setLabel("Add Pattern (" + name + ")");
                             }
                         }
                     }
                     break;
-
                 default: break;
                 }
             }
-            else if (auto* me = ev->getIf<sf::Event::MouseButtonPressed>()) {
 
-                int mx = me->position.x;
-                int my = me->position.y;
+            if (auto* me = ev->getIf<sf::Event::MouseButtonPressed>()) {
+                float mx = (float)me->position.x;
+                float my = (float)me->position.y;
 
-                if (me->button == sf::Mouse::Button::Left &&
-                    mx >= 0 && mx < GRID_W &&
-                    my >= 0 && my < GRID_N * game.cellSize)
-                {
-                    sf::Vector2i mp = sf::Mouse::getPosition(window);
-                    sf::Vector2f wp = window.mapPixelToCoords(mp);
+                if (me->button == sf::Mouse::Button::Left) {
+                    if (mx < GRID_W) {
+                        float relativeY = my - offsetY;
 
-                    int gx = wp.x / game.cellSize;
-                    int gy = wp.y / game.cellSize;
+                        int gx = static_cast<int>(mx / cellSize);
+                        int gy = static_cast<int>(relativeY / cellSize);
 
-                    if (gx >= 0 && gx < GRID_N && gy >= 0 && gy < GRID_N)
-                    {
-                        auto& grid = game.getGrid();
-
-                        if (selectedPattern == PatternType::None) {
-                            grid[gy][gx] = 1 - grid[gy][gx];
-                        }
-                        else if (selectedPattern == PatternType::Glider) {
-                            Glider().apply(grid, gy, gx);
-                        }
-                        else if (selectedPattern == PatternType::Block) {
-                            Block().apply(grid, gy, gx);
-                        }
-                        else if (selectedPattern == PatternType::GosperGun) {
-                            GosperGun().apply(grid, gy, gx);
-                        }
-                        else if (selectedPattern == PatternType::SimkinGliderGun) {
-                            SimkinGliderGun().apply(grid, gy, gx);
-                        }
-                        else if (selectedPattern == PatternType::LWSS) {
-                            LWSS().apply(grid, gy, gx);
-                        }
-                        else if (selectedPattern == PatternType::Pulsar) {
-                            Pulsar().apply(grid, gy, gx);
-                        }
-                        else if (selectedPattern == PatternType::Pentadecathlon) {
-                            Pentadecathlon().apply(grid, gy, gx);
-                        }
-                        else if (selectedPattern == PatternType::Acorn) {
-                            Acorn().apply(grid, gy, gx);
-                        }
-                        else if (selectedPattern == PatternType::CanadaGoose) {
-                            CanadaGoose().apply(grid, gy, gx);
-                        }
-                        else if (selectedPattern == PatternType::Spiral) {
-                            Spiral().apply(grid, gy, gx);
-                        }
-                        else if (selectedPattern == PatternType::RPentomino) {
-                            RPentomino().apply(grid, gy, gx);
-                        }
-                    }
-                }
-                else if (mx >= GRID_W && me->button == sf::Mouse::Button::Left) {
-
-                    if (Button* btn = uiManager.clicked(mx, my)) {
-
-                        switch (uiManager.getCommand(btn))
-                        {
-                        case Command::START_PAUSE:
-                            game.toggleRunning();
-                            break;
-
-                        case Command::RANDOMIZE:
-                            game.randomize();
-                            break;
-
-                        case Command::CLEAR:
-                            game.clear();
-                            break;
-
-                        case Command::BLOCK_LEFT:
-                            walls.toggleLeft();
-                            btn->setActive(walls.left());
-                            break;
-                        case Command::BLOCK_RIGHT:
-                            walls.toggleRight();
-                            btn->setActive(walls.right());
-                            break;
-                        case Command::BLOCK_TOP:
-                            walls.toggleTop();
-                            btn->setActive(walls.top());
-                            break;
-                        case Command::BLOCK_BOTTOM:
-                            walls.toggleBottom();
-                            btn->setActive(walls.bottom());
-                            break;
-                        case Command::ADD_PATTERN:
-
-                            if (btn->active()) {
-                                btn->setActive(false);
-                                selectedPattern = PatternType::None;
+                        if (gx >= 0 && gx < GRID_N && gy >= 0 && gy < (int)g.getCells().size()) {
+                            if (selectedPattern == PatternType::None) {
+                                auto& gridCells = g.getCells();
+                                gridCells[gy][gx] = 1 - gridCells[gy][gx];
                             }
                             else {
-                                btn->setActive(true);
-                                selectedPattern = lastPattern;
+                                if (selectedPattern == PatternType::Glider) Glider().apply(g, gy, gx);
+                                else if (selectedPattern == PatternType::Block) Block().apply(g, gy, gx);
+                                else if (selectedPattern == PatternType::GosperGun) GosperGun().apply(g, gy, gx);
+                                else if (selectedPattern == PatternType::SimkinGliderGun) SimkinGliderGun().apply(g, gy, gx);
+                                else if (selectedPattern == PatternType::LWSS) LWSS().apply(g, gy, gx);
+                                else if (selectedPattern == PatternType::Pulsar) Pulsar().apply(g, gy, gx);
+                                else if (selectedPattern == PatternType::Pentadecathlon) Pentadecathlon().apply(g, gy, gx);
+                                else if (selectedPattern == PatternType::Acorn) Acorn().apply(g, gy, gx);
+                                else if (selectedPattern == PatternType::CanadaGoose) CanadaGoose().apply(g, gy, gx);
+                                else if (selectedPattern == PatternType::Spiral) Spiral().apply(g, gy, gx);
+                                else if (selectedPattern == PatternType::RPentomino) RPentomino().apply(g, gy, gx);
                             }
-                            break;
-
-                        default: break;
+                        }
+                    }
+                    else {
+                        Button* btn = uiManager.clicked(mx, my);
+                        if (btn) {
+                            switch (uiManager.getCommand(btn)) {
+                            case Command::START_PAUSE: toggleRunning(); break;
+                            case Command::RANDOMIZE: randomize(); break;
+                            case Command::CLEAR: clear(); break;
+                            case Command::BLOCK_LEFT: wallsObj.toggleLeft(); btn->setActive(wallsObj.left()); break;
+                            case Command::BLOCK_RIGHT: wallsObj.toggleRight(); btn->setActive(wallsObj.right()); break;
+                            case Command::BLOCK_TOP: wallsObj.toggleTop(); btn->setActive(wallsObj.top()); break;
+                            case Command::BLOCK_BOTTOM: wallsObj.toggleBottom(); btn->setActive(wallsObj.bottom()); break;
+                            case Command::ADD_PATTERN:
+                                if (btn->active()) {
+                                    btn->setActive(false);
+                                    selectedPattern = PatternType::None;
+                                }
+                                else {
+                                    btn->setActive(true);
+                                    selectedPattern = lastPattern;
+                                }
+                                break;
+                            default: break;
+                            }
                         }
                     }
                 }
             }
         }
 
-        if (game.isRunning() && clock.getElapsedTime().asMilliseconds() > msPerGen) {
-            game.updateStep();
+        if (isRunning() && clock.getElapsedTime().asMilliseconds() > msPerGen) {
+            updateStep();
             clock.restart();
         }
 
         window.clear(sf::Color(30, 30, 30));
-        walls.draw(window);
+        wallsObj.draw(window);
 
-        for (int y = 0; y < GRID_N; y++) {
-            for (int x = 0; x < GRID_N; x++) {
-                if (game.getGrid()[y][x] == 1) {
-                    cell.setPosition({ (float)x * game.cellSize, (float)y * game.cellSize });
-                    cell.setFillColor(sf::Color::White);
-                    window.draw(cell);
+        sf::RectangleShape cellRect(sf::Vector2f(cellSize - 1.f, cellSize - 1.f));
+        cellRect.setFillColor(sf::Color::White);
+        auto& drawGrid = g.getCells();
+        for (int y = 0; y < (int)drawGrid.size(); y++) {
+            for (int x = 0; x < (int)drawGrid[y].size(); x++) {
+                if (drawGrid[y][x] == 1) {
+                    // cellRect musi reagować na zmianę offsetY po Enterze
+                    cellRect.setPosition({ x * cellSize, y * cellSize + offsetY });
+                    window.draw(cellRect);
                 }
             }
         }
 
-        gridSizeInput.draw(window);
         uiManager.draw(window);
+        gridSizeInput.draw(window);
         window.display();
     }
 }

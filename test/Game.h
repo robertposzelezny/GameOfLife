@@ -1,6 +1,7 @@
 #pragma once
 #include "Grid.h"
 #include "WallsManager.h"
+#include "InputField.h"
 
 class Game {
 public:
@@ -31,14 +32,30 @@ public:
     * @return True if the game is running.
     */
     bool isRunning() const { return running; }
+    /**
+    *
+	* @brief Returns a reference to the game grid.
+    */
     Grid& getGrid() { return g; }
 
+    /**
+	* @brief Sets the walls manager for the game.
+    *
+    *
+    */
     void setWalls(WallsManager* w) {
         walls = w;
         g.setWalls(w);
     }
+    /**
+	* @brief Returns a pointer to the walls manager.
+    *
+    */
     WallsManager* getWalls() const { return walls; }
-
+    /**
+	* @brief Runs the main game loop.
+    *
+    */
     void runGame();
 
     enum class PatternType {
@@ -78,6 +95,8 @@ private:
     Grid g;
     WallsManager* walls = nullptr;
     bool running = false;
+    sf::Font gameFont;
+    InputField gridSizeInput;
     int WIN_W = 1100;
     int WIN_H = 800;
     int MENU_W = 300;

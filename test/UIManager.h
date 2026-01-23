@@ -1,65 +1,32 @@
 #pragma once
 #include <vector>
+#include <SFML/Graphics.hpp>
 #include "Button.h"
-#include "Game.h"
 
+// Definicja komend dla przycisków
 enum class Command {
-	START_PAUSE,
-	RANDOMIZE,
-	CLEAR,
-	None,
-
-	BLOCK_LEFT,
-	BLOCK_RIGHT,
-	BLOCK_TOP,
-	BLOCK_BOTTOM,
-
-	ADD_PATTERN
+    None, START_PAUSE, RANDOMIZE, CLEAR,
+    BLOCK_LEFT, BLOCK_RIGHT, BLOCK_TOP, BLOCK_BOTTOM,
+    ADD_PATTERN
 };
 
 class UIManager {
-public:
-	~UIManager();
-	UIManager(int gridW, int menuW);
-	/**
-	 * @brief Adds a button to the UI.
-	 * @param b Pointer to a Button object to be managed.
-	 */
-	void add(Button* b);
-	/**
-	 * @brief Returns the button that was clicked at the given mouse coordinates.
-	 * @param mx Mouse X position.
-	 * @param my Mouse Y position.
-	 * @return Pointer to the clicked Button, or nullptr if none was clicked.
-	 */
-	Button* clicked(float mx, float my);
-	/**
-	 * @brief Draws all UI buttons to the given render window.
-	 * @param win Reference to the RenderWindow.
-	 */
-	void draw(sf::RenderWindow& win);
-	/**
-	 * @brief Creates UI buttons.
-	 */
-	void createButtons();
-	/**
-	 * @brief Decodes which command corresponds to the given button.
-	 * @param b Pointer to a Button.
-	 * @return Corresponding Command enum value.
-	 */
-	Command getCommand(Button* b);
-	/**
-	 * @brief Resets all buttons to their default visual state.
-	 */
-	void resetButtons();
-
-	void resetPatternButtons();
-	void activatePatternButton(Game::PatternType type);
-	Button* getPatternButton();
 private:
-	int GRID_W;
-	int MENU_W;
-	std::vector<Button*> buttons;
+    std::vector<Button*> buttons;
+    int GRID_W;
+    int MENU_W;
 
-	
+public:
+    UIManager(int gridW, int menuW);
+    ~UIManager(); // Destruktor do czyszczenia pamiêci (delete)
+
+    void add(Button* b);
+    void createButtons(sf::Font& sharedFont); // Tutaj dodaliœmy parametr
+    void draw(sf::RenderWindow& window);
+
+    Button* clicked(float mx, float my);
+    void resetButtons();
+
+    Command getCommand(Button* b);
+    Button* getPatternButton();
 };
