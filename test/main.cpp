@@ -1,53 +1,29 @@
 #include "Game.h"
+#include "DatabaseManager.h"
+#include "BuiltInPatterns.h"
 #include <windows.h>
 #include <sqlext.h>
 #include <iostream>
 
 int main() {
+	// Initialize database connection
+	DatabaseManager& db = DatabaseManager::getInstance();
 
-    SQLHENV env;
-    SQLHDBC dbc;
-    SQLRETURN ret;
+	if (!db.connect()) {
+		std::cerr << "Failed to connect to database!" << std::endl;
+		return 1;
+	}
 
-    // Allocate environment
-    SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &env);
-    SQLSetEnvAttr(env, SQL_ATTR_ODBC_VERSION, (void*)SQL_OV_ODBC3, 0);
+	if (!seedBuiltInPatterns(db)) {
+		std::cerr << "Failed to seed one or more built-in patterns." << std::endl;
+	}
 
-    // Allocate connection
-    SQLAllocHandle(SQL_HANDLE_DBC, env, &dbc);
+	// Run the game
+	Game game(60);
+	game.runGame();
 
-    // Connection string
-    SQLCHAR connStr[] =
-        "DRIVER={SQL Server};SERVER=DESKTOP-TQN13PE;DATABASE=GameOfLifeDB;Trusted_Connection=yes;";
+	// Disconnect from database
+	db.disconnect();
 
-    SQLCHAR outstr[1024];
-    SQLSMALLINT outstrlen;
-
-    ret = SQLDriverConnect(
-        dbc,
-        NULL,
-        connStr,
-        SQL_NTS,
-        outstr,
-        sizeof(outstr),
-        &outstrlen,
-        SQL_DRIVER_COMPLETE
-    );
-
-    if (SQL_SUCCEEDED(ret)) {
-        std::cout << "Connected to database!" << std::endl;
-    }
-    else {
-        std::cout << "Connection failed!" << std::endl;
-    }
-
-    SQLDisconnect(dbc);
-    SQLFreeHandle(SQL_HANDLE_DBC, dbc);
-    SQLFreeHandle(SQL_HANDLE_ENV, env);
-
-    return 0;
-
-	//Game game(60);
-	//game.runGame();
-	//return 0;
+	return 0;
 }

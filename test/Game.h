@@ -2,6 +2,8 @@
 #include "Grid.h"
 #include "WallsManager.h"
 #include "InputField.h"
+#include <string>
+#include <vector>
 
 class Game {
 public:
@@ -58,37 +60,9 @@ public:
     */
     void runGame();
 
-    enum class PatternType {
-        None,
-        Glider,
-        Block,
-        GosperGun,
-		SimkinGliderGun,
-        LWSS,
-		Pulsar,
-        Pentadecathlon,
-        Acorn,
-        CanadaGoose,
-        Spiral,
-		RPentomino
-    };
-
-    PatternType selectedPattern = PatternType::None;
-    PatternType lastPattern = PatternType::Block;
-
-    std::vector<PatternType> patternOrder = {
-        PatternType::Block,
-        PatternType::Glider,
-        PatternType::GosperGun,
-        PatternType::SimkinGliderGun,
-        PatternType::LWSS,
-        PatternType::Pulsar,
-        PatternType::Pentadecathlon,
-        PatternType::Acorn,
-        PatternType::CanadaGoose,
-        PatternType::Spiral,
-        PatternType::RPentomino
-    };
+    bool patternPlacementEnabled = false;
+    int selectedPatternIndex = 0;
+    std::vector<std::string> patternNames;
     float cellSize = 0.f;
 
 private:

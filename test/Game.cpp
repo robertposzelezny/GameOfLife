@@ -11,19 +11,10 @@
 #include "Grid.h"
 #include "UIManager.h"
 #include "WallsManager.h"
+#include "DatabaseManager.h"
+#include "BuiltInPatterns.h"
 
 #include "Pattern.h"
-#include "Glider.h"
-#include "Block.h"
-#include "GosperGun.h"
-#include "SimkinGliderGun.h"
-#include "LWSS.h"
-#include "Pulsar.h"
-#include "Pentadecathlon.h"
-#include "Acorn.h"
-#include "CanadaGoose.h"
-#include "Spiral.h"
-#include "RPentomino.h"
 
 #include "ARIAL (1).h"
 
@@ -33,8 +24,8 @@ Game::Game(int n) : g(n), gridSizeInput() {
     }
     running = false;
     cellSize = 0.f;
-    selectedPattern = PatternType::None;
-    lastPattern = PatternType::Block;
+    patternPlacementEnabled = false;
+    selectedPatternIndex = 0;
 }
 
 void Game::updateStep() {
@@ -81,14 +72,38 @@ void Game::runGame() {
     setWalls(&wallsObj);
 
     UIManager uiManager(GRID_W, MENU_W);
-    uiManager.createButtons(gameFont);
+    DatabaseManager& db = DatabaseManager::getInstance();
+    patternNames = db.getAllPatternNames();
+    if (patternNames.empty()) {
+        for (const auto& pattern : getBuiltInPatterns()) {
+            patternNames.push_back(pattern.first);
+        }
+    }
+
+    uiManager.createButtons(gameFont, patternNames);
     this->gridSizeInput = InputField(sf::Vector2f(GRID_W + 20, WIN_H - 100), sf::Vector2f(MENU_W - 40, 40), gameFont);
 
-    auto findPatternIndex = [&](PatternType t) {
-        for (size_t i = 0; i < patternOrder.size(); i++)
-            if (patternOrder[i] == t) return static_cast<int>(i);
-        return -1;
-        };
+    auto selectedPatternName = [&]() -> std::string {
+        if (patternNames.empty()) {
+            return "None";
+        }
+        if (selectedPatternIndex < 0 || selectedPatternIndex >= static_cast<int>(patternNames.size())) {
+            selectedPatternIndex = 0;
+        }
+        return patternNames[selectedPatternIndex];
+    };
+
+    auto updatePatternToggle = [&]() {
+        Button* pbtn = uiManager.getPatternToggleButton();
+        if (!pbtn) {
+            return;
+        }
+
+        pbtn->setLabel("Add Pattern (" + selectedPatternName() + ")");
+        pbtn->setActive(patternPlacementEnabled);
+    };
+
+    updatePatternToggle();
 
     sf::Clock clock;
     int msPerGen = 150;
@@ -129,33 +144,22 @@ void Game::runGame() {
                 }
                 case K::Left:
                 case K::Right:
-                    if (selectedPattern != PatternType::None) {
-                        int idx = findPatternIndex(selectedPattern);
-                        if (idx != -1) {
-                            if (ke->code == K::Right) idx++; else idx--;
-                            if (idx < 0) idx = (int)patternOrder.size() - 1;
-                            if (idx >= (int)patternOrder.size()) idx = 0;
-
-                            selectedPattern = patternOrder[idx];
-                            lastPattern = selectedPattern;
-
-                            Button* pbtn = uiManager.getPatternButton();
-                            if (pbtn) {
-                                std::string name = "Unknown";
-                                if (selectedPattern == PatternType::Block) name = "Block";
-                                else if (selectedPattern == PatternType::Glider) name = "Glider";
-                                else if (selectedPattern == PatternType::GosperGun) name = "Gosper Gun";
-                                else if (selectedPattern == PatternType::SimkinGliderGun) name = "SGG";
-                                else if (selectedPattern == PatternType::LWSS) name = "LWSS";
-                                else if (selectedPattern == PatternType::Pulsar) name = "Pulsar";
-                                else if (selectedPattern == PatternType::Pentadecathlon) name = "Pentadecathlon";
-                                else if (selectedPattern == PatternType::Acorn) name = "Acorn";
-                                else if (selectedPattern == PatternType::CanadaGoose) name = "CanadaGoose";
-                                else if (selectedPattern == PatternType::Spiral) name = "Spiral";
-                                else if (selectedPattern == PatternType::RPentomino) name = "R-Pentomino";
-                                pbtn->setLabel("Add Pattern (" + name + ")");
-                            }
+                    if (patternPlacementEnabled && !patternNames.empty()) {
+                        if (ke->code == K::Right) {
+                            selectedPatternIndex++;
                         }
+                        else {
+                            selectedPatternIndex--;
+                        }
+
+                        if (selectedPatternIndex < 0) {
+                            selectedPatternIndex = static_cast<int>(patternNames.size()) - 1;
+                        }
+                        if (selectedPatternIndex >= static_cast<int>(patternNames.size())) {
+                            selectedPatternIndex = 0;
+                        }
+
+                        updatePatternToggle();
                     }
                     break;
                 default: break;
@@ -174,22 +178,15 @@ void Game::runGame() {
                         int gy = static_cast<int>(relativeY / cellSize);
 
                         if (gx >= 0 && gx < GRID_N && gy >= 0 && gy < (int)g.getCells().size()) {
-                            if (selectedPattern == PatternType::None) {
+                            if (!patternPlacementEnabled) {
                                 auto& gridCells = g.getCells();
                                 gridCells[gy][gx] = 1 - gridCells[gy][gx];
                             }
                             else {
-                                if (selectedPattern == PatternType::Glider) Glider().apply(g, gy, gx);
-                                else if (selectedPattern == PatternType::Block) Block().apply(g, gy, gx);
-                                else if (selectedPattern == PatternType::GosperGun) GosperGun().apply(g, gy, gx);
-                                else if (selectedPattern == PatternType::SimkinGliderGun) SimkinGliderGun().apply(g, gy, gx);
-                                else if (selectedPattern == PatternType::LWSS) LWSS().apply(g, gy, gx);
-                                else if (selectedPattern == PatternType::Pulsar) Pulsar().apply(g, gy, gx);
-                                else if (selectedPattern == PatternType::Pentadecathlon) Pentadecathlon().apply(g, gy, gx);
-                                else if (selectedPattern == PatternType::Acorn) Acorn().apply(g, gy, gx);
-                                else if (selectedPattern == PatternType::CanadaGoose) CanadaGoose().apply(g, gy, gx);
-                                else if (selectedPattern == PatternType::Spiral) Spiral().apply(g, gy, gx);
-                                else if (selectedPattern == PatternType::RPentomino) RPentomino().apply(g, gy, gx);
+                                if (!patternNames.empty()) {
+                                    Pattern pattern(selectedPatternName());
+                                    pattern.apply(g, gy, gx);
+                                }
                             }
                         }
                     }
@@ -207,13 +204,25 @@ void Game::runGame() {
                             case Command::ADD_PATTERN:
                                 if (btn->active()) {
                                     btn->setActive(false);
-                                    selectedPattern = PatternType::None;
+                                    patternPlacementEnabled = false;
                                 }
                                 else {
-                                    btn->setActive(true);
-                                    selectedPattern = lastPattern;
+                                    patternPlacementEnabled = true;
                                 }
+                                updatePatternToggle();
                                 break;
+                            case Command::SELECT_PATTERN: {
+                                const std::string clickedPattern = uiManager.getPatternName(btn);
+                                for (size_t i = 0; i < patternNames.size(); ++i) {
+                                    if (patternNames[i] == clickedPattern) {
+                                        selectedPatternIndex = static_cast<int>(i);
+                                        patternPlacementEnabled = true;
+                                        break;
+                                    }
+                                }
+                                updatePatternToggle();
+                                break;
+                            }
                             default: break;
                             }
                         }
