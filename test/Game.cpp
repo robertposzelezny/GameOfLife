@@ -82,6 +82,8 @@ void Game::runGame() {
 
     uiManager.createButtons(gameFont, patternNames);
     this->gridSizeInput = InputField(sf::Vector2f(GRID_W + 20, WIN_H - 100), sf::Vector2f(MENU_W - 40, 40), gameFont);
+    this->patternNameInput = InputField(sf::Vector2f(GRID_W + 20, 650.f), sf::Vector2f(MENU_W - 40, 40), gameFont, InputField::Mode::Text);
+    patternNameInput.setText("NewPattern");
 
     auto selectedPatternName = [&]() -> std::string {
         if (patternNames.empty()) {
@@ -103,6 +105,35 @@ void Game::runGame() {
         pbtn->setActive(patternPlacementEnabled);
     };
 
+    auto collectNormalizedLiveCells = [&]() -> std::vector<std::pair<int, int>> {
+        std::vector<std::pair<int, int>> liveCells;
+        auto& cells = g.getCells();
+
+        int minX = static_cast<int>(cells.size());
+        int minY = static_cast<int>(cells.size());
+
+        for (int y = 0; y < static_cast<int>(cells.size()); ++y) {
+            for (int x = 0; x < static_cast<int>(cells[y].size()); ++x) {
+                if (cells[y][x] == 1) {
+                    liveCells.push_back({ x, y });
+                    minX = std::min(minX, x);
+                    minY = std::min(minY, y);
+                }
+            }
+        }
+
+        if (liveCells.empty()) {
+            return {};
+        }
+
+        for (auto& cell : liveCells) {
+            cell.first -= minX;
+            cell.second -= minY;
+        }
+
+        return liveCells;
+    };
+
     updatePatternToggle();
 
     sf::Clock clock;
@@ -112,6 +143,7 @@ void Game::runGame() {
         while (auto ev = window.pollEvent()) {
 
             gridSizeInput.handleEvent(*ev, window);
+            patternNameInput.handleEvent(*ev, window);
 
             if (ev->is<sf::Event::Closed>()) {
                 window.close();
@@ -129,16 +161,18 @@ void Game::runGame() {
                 case K::Down: msPerGen += 20; break;
                 case K::Escape:window.close();break;
                 case K::Enter: {
-                    int newSize = gridSizeInput.getValue();
-                    if (newSize >= 5 && newSize <= 500) {
-                        GRID_N = newSize;
-                        g.resize(GRID_N);
-                        cellSize = std::min(GRID_W / (float)GRID_N, WIN_H / (float)GRID_N);
-                        float gridHeight = GRID_N * cellSize;
-                        offsetY = (WIN_H - gridHeight) / 2.0f;
+                    if (gridSizeInput.isActive()) {
+                        int newSize = gridSizeInput.getValue();
+                        if (newSize >= 5 && newSize <= 500) {
+                            GRID_N = newSize;
+                            g.resize(GRID_N);
+                            cellSize = std::min(GRID_W / (float)GRID_N, WIN_H / (float)GRID_N);
+                            float gridHeight = GRID_N * cellSize;
+                            offsetY = (WIN_H - gridHeight) / 2.0f;
 
-                        wallsObj = WallsManager(GRID_N, cellSize, (int)GRID_W, offsetY);
-                        setWalls(&wallsObj);
+                            wallsObj = WallsManager(GRID_N, cellSize, (int)GRID_W, offsetY);
+                            setWalls(&wallsObj);
+                        }
                     }
                     break;
                 }
@@ -211,6 +245,48 @@ void Game::runGame() {
                                 }
                                 updatePatternToggle();
                                 break;
+                            case Command::SAVE_PATTERN: {
+                                std::string newPatternName = patternNameInput.getText();
+                                newPatternName.erase(0, newPatternName.find_first_not_of(" \t"));
+                                if (!newPatternName.empty()) {
+                                    newPatternName.erase(newPatternName.find_last_not_of(" \t") + 1);
+                                }
+
+                                const auto liveCells = collectNormalizedLiveCells();
+                                if (newPatternName.empty()) {
+                                    std::cerr << "Pattern name cannot be empty." << std::endl;
+                                }
+                                else if (liveCells.empty()) {
+                                    std::cerr << "Grid has no alive cells to save as pattern." << std::endl;
+                                }
+                                else if (!db.savePattern(newPatternName, liveCells)) {
+                                    std::cerr << "Failed to save pattern '" << newPatternName << "'." << std::endl;
+                                }
+                                else {
+                                    bool alreadyListed = false;
+                                    for (const auto& name : patternNames) {
+                                        if (name == newPatternName) {
+                                            alreadyListed = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!alreadyListed) {
+                                        patternNames.push_back(newPatternName);
+                                    }
+
+                                    for (size_t i = 0; i < patternNames.size(); ++i) {
+                                        if (patternNames[i] == newPatternName) {
+                                            selectedPatternIndex = static_cast<int>(i);
+                                            break;
+                                        }
+                                    }
+
+                                    patternPlacementEnabled = true;
+                                    updatePatternToggle();
+                                    std::cout << "Saved pattern '" << newPatternName << "' to database." << std::endl;
+                                }
+                                break;
+                            }
                             case Command::SELECT_PATTERN: {
                                 const std::string clickedPattern = uiManager.getPatternName(btn);
                                 for (size_t i = 0; i < patternNames.size(); ++i) {
@@ -252,6 +328,7 @@ void Game::runGame() {
         }
 
         uiManager.draw(window);
+        patternNameInput.draw(window);
         gridSizeInput.draw(window);
         window.display();
     }

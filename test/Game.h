@@ -71,6 +71,7 @@ private:
     bool running = false;
     sf::Font gameFont;
     InputField gridSizeInput;
+    InputField patternNameInput;
     int WIN_W = 1100;
     int WIN_H = 800;
     int MENU_W = 300;

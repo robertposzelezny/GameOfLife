@@ -62,8 +62,11 @@ void UIManager::createButtons(sf::Font& sharedFont, const std::vector<std::strin
         { (float)GRID_W + 20.f, 530.f }, { (float)MENU_W - 40.f, 50.f }, sharedFont);
     add(patternToggleButton, Command::ADD_PATTERN);
 
-    add(new Button("Space - Start/Pause \n S - Next tick \n R - Randomize \n C - Clear \n Up arrow - Speed up \n Down arrow - Slow down \n ESC - Close App \n InputField[Below] - Set new grid size ",
-        { (float)GRID_W + 20.f, 590.f }, { (float)MENU_W - 40.f, 200.f }, sharedFont));
+    add(new Button("Save Pattern",
+        { (float)GRID_W + 20.f, 590.f }, { (float)MENU_W - 40.f, 50.f }, sharedFont), Command::SAVE_PATTERN);
+
+    add(new Button("Space - Start/Pause \n S - Next tick \n R - Randomize \n C - Clear \n Arrows L/R - Change pattern \n ESC - Close App",
+        { (float)GRID_W + 20.f, 710.f }, { (float)MENU_W - 40.f, 130.f }, sharedFont));
 }
 
 void UIManager::resetButtons() {

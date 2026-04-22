@@ -5,7 +5,8 @@ InputField::InputField() : active(false) {
     text = nullptr;
 }
 
-InputField::InputField(const sf::Vector2f& pos, const sf::Vector2f& size, sf::Font& sharedFont) {
+InputField::InputField(const sf::Vector2f& pos, const sf::Vector2f& size, sf::Font& sharedFont, Mode mode)
+    : mode(mode) {
     box.setSize(size);
     box.setPosition(pos);
     box.setFillColor(sf::Color(80, 80, 80));
@@ -36,11 +37,18 @@ void InputField::handleEvent(const sf::Event& ev, sf::RenderWindow& window) {
 
     if (auto* textEv = ev.getIf<sf::Event::TextEntered>()) {
         char c = (char)textEv->unicode;
-        if (std::isdigit(c)) {
-            content.push_back(c);
-        }
-        else if (c == 8) {
+        if (c == 8) {
             if (!content.empty()) content.pop_back();
+        }
+        else if (mode == Mode::Numeric) {
+            if (std::isdigit(c)) {
+                content.push_back(c);
+            }
+        }
+        else {
+            if (c >= 32 && c <= 126) {
+                content.push_back(c);
+            }
         }
         text->setString(content);
     }
@@ -54,4 +62,26 @@ int InputField::getValue() const {
     catch (...) {
         return -1;
     }
+}
+
+std::string InputField::getText() const {
+    return content;
+}
+
+void InputField::setText(const std::string& value) {
+    content = value;
+    if (text) {
+        text->setString(content);
+    }
+}
+
+void InputField::clear() {
+    content.clear();
+    if (text) {
+        text->setString(content);
+    }
+}
+
+bool InputField::isActive() const {
+    return active;
 }

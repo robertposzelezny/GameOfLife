@@ -9,7 +9,8 @@ enum class Command {
     None, START_PAUSE, RANDOMIZE, CLEAR,
     BLOCK_LEFT, BLOCK_RIGHT, BLOCK_TOP, BLOCK_BOTTOM,
     ADD_PATTERN,
-    SELECT_PATTERN
+    SELECT_PATTERN,
+    SAVE_PATTERN
 };
 
 class UIManager {
