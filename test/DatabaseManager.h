@@ -48,6 +48,13 @@ public:
 	std::vector<std::string> getAllPatternNames();
 
 	/**
+	 * @brief Saves current board cells to dbo.boards table.
+	 * @param cells vector of alive cell coordinates
+	 * @return true if save succeeded
+	 */
+	bool saveBoard(const std::vector<std::pair<int, int>>& cells);
+
+	/**
 	 * @brief Deletes pattern from database
 	 * @param patternName name of the pattern
 	 * @return true if deletion succeeded

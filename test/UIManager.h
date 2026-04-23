@@ -10,7 +10,8 @@ enum class Command {
     BLOCK_LEFT, BLOCK_RIGHT, BLOCK_TOP, BLOCK_BOTTOM,
     ADD_PATTERN,
     SELECT_PATTERN,
-    SAVE_PATTERN
+    SAVE_PATTERN,
+    SAVE_BOARD
 };
 
 class UIManager {

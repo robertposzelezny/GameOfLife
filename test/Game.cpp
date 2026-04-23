@@ -134,6 +134,19 @@ void Game::runGame() {
         return liveCells;
     };
 
+    auto collectLiveCells = [&]() -> std::vector<std::pair<int, int>> {
+        std::vector<std::pair<int, int>> liveCells;
+        auto& cells = g.getCells();
+        for (int y = 0; y < static_cast<int>(cells.size()); ++y) {
+            for (int x = 0; x < static_cast<int>(cells[y].size()); ++x) {
+                if (cells[y][x] == 1) {
+                    liveCells.push_back({ x, y });
+                }
+            }
+        }
+        return liveCells;
+    };
+
     updatePatternToggle();
 
     sf::Clock clock;
@@ -284,6 +297,19 @@ void Game::runGame() {
                                     patternPlacementEnabled = true;
                                     updatePatternToggle();
                                     std::cout << "Saved pattern '" << newPatternName << "' to database." << std::endl;
+                                }
+                                break;
+                            }
+                            case Command::SAVE_BOARD: {
+                                const auto liveCells = collectLiveCells();
+                                if (liveCells.empty()) {
+                                    std::cerr << "Grid has no alive cells to save as board." << std::endl;
+                                }
+                                else if (!db.saveBoard(liveCells)) {
+                                    std::cerr << "Failed to save board." << std::endl;
+                                }
+                                else {
+                                    std::cout << "Saved current board to database." << std::endl;
                                 }
                                 break;
                             }

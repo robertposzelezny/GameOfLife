@@ -315,6 +315,60 @@ std::vector<std::string> DatabaseManager::getAllPatternNames() {
 	return result;
 }
 
+bool DatabaseManager::saveBoard(const std::vector<std::pair<int, int>>& cells) {
+	if (!isConnected()) {
+		std::cerr << "Database not connected" << std::endl;
+		return false;
+	}
+
+	SQLHSTMT stmt;
+	SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+	if (!SQL_SUCCEEDED(ret)) {
+		std::cerr << "Failed to allocate statement handle" << std::endl;
+		return false;
+	}
+
+	const std::string cellsJson = encodeCells(cells);
+	const std::string query = "INSERT INTO dbo.GameBoards (cells) VALUES (?)";
+	ret = SQLPrepare(stmt, (SQLCHAR*)query.c_str(), SQL_NTS);
+	if (!SQL_SUCCEEDED(ret)) {
+		printOdbcError(SQL_HANDLE_STMT, stmt, "Failed to prepare board insert");
+		SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+		return false;
+	}
+
+	SQLLEN cellsLen = SQL_NTS;
+	ret = SQLBindParameter(
+		stmt,
+		1,
+		SQL_PARAM_INPUT,
+		SQL_C_CHAR,
+		SQL_LONGVARCHAR,
+		static_cast<SQLULEN>(cellsJson.size()),
+		0,
+		(SQLPOINTER)cellsJson.c_str(),
+		0,
+		&cellsLen
+	);
+	if (!SQL_SUCCEEDED(ret)) {
+		printOdbcError(SQL_HANDLE_STMT, stmt, "Failed to bind board cells");
+		SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+		return false;
+	}
+
+	ret = SQLExecute(stmt);
+	const bool success = SQL_SUCCEEDED(ret);
+	if (success) {
+		std::cout << "Board saved to database" << std::endl;
+	}
+	else {
+		printOdbcError(SQL_HANDLE_STMT, stmt, "Failed to save board");
+	}
+
+	SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+	return success;
+}
+
 bool DatabaseManager::deletePattern(const std::string& patternName) {
 	if (!isConnected()) {
 		std::cerr << "Database not connected" << std::endl;
