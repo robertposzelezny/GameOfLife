@@ -55,6 +55,19 @@ public:
 	bool saveBoard(const std::vector<std::pair<int, int>>& cells);
 
 	/**
+	 * @brief Gets all saved board ids ordered descending (newest first).
+	 * @return vector of board ids
+	 */
+	std::vector<int> getAllBoardIds();
+
+	/**
+	 * @brief Gets board cells by board id.
+	 * @param boardId id of board in dbo.GameBoards
+	 * @return vector of alive cell coordinates
+	 */
+	std::vector<std::pair<int, int>> getBoardCells(int boardId);
+
+	/**
 	 * @brief Deletes pattern from database
 	 * @param patternName name of the pattern
 	 * @return true if deletion succeeded

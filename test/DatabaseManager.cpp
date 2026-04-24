@@ -5,17 +5,33 @@
 
 namespace {
 	void printOdbcError(SQLSMALLINT handleType, SQLHANDLE handle, const char* context) {
-		SQLCHAR sqlState[6] = {};
-		SQLINTEGER nativeError = 0;
 		SQLCHAR messageText[512] = {};
 		SQLSMALLINT textLength = 0;
-		SQLRETURN ret = SQLGetDiagRec(handleType, handle, 1, sqlState, &nativeError, messageText, sizeof(messageText), &textLength);
-		if (SQL_SUCCEEDED(ret)) {
-			std::cerr << context << " | SQLSTATE=" << sqlState << " NativeError=" << nativeError << " Message=" << messageText << std::endl;
+		SQLRETURN ret = SQLGetDiagRec(handleType, handle, 1, NULL, NULL, messageText, sizeof(messageText), &textLength);
+		if (SQL_SUCCEEDED(ret) && textLength > 0) {
+			std::cerr << context << ": " << messageText << std::endl;
+			return;
 		}
-		else {
-			std::cerr << context << std::endl;
+		std::cerr << context << std::endl;
+	}
+
+	std::string readTextColumn(SQLHSTMT stmt, SQLUSMALLINT columnIndex) {
+		std::string result;
+		SQLCHAR chunk[1024];
+		SQLLEN indicator = 0;
+		SQLRETURN ret = SQL_SUCCESS_WITH_INFO;
+		while (ret == SQL_SUCCESS_WITH_INFO) {
+			ret = SQLGetData(stmt, columnIndex, SQL_C_CHAR, chunk, sizeof(chunk), &indicator);
+			if (ret == SQL_NO_DATA || indicator == SQL_NULL_DATA) {
+				break;
+			}
+			if (!SQL_SUCCEEDED(ret) && ret != SQL_SUCCESS_WITH_INFO) {
+				return "";
+			}
+			result += reinterpret_cast<const char*>(chunk);
 		}
+
+		return result;
 	}
 }
 
@@ -111,26 +127,28 @@ std::string DatabaseManager::encodeCells(const std::vector<std::pair<int, int>>&
 std::vector<std::pair<int, int>> DatabaseManager::decodeCells(const std::string& jsonStr) const {
 	std::vector<std::pair<int, int>> cells;
 
-	std::string content = jsonStr;
-	if (content.front() == '[') content = content.substr(1);
-	if (content.back() == ']') content = content.substr(0, content.length() - 1);
+	if (jsonStr.empty()) {
+		return cells;
+	}
 
-	std::stringstream ss(content);
-	std::string token;
+	size_t pos = 0;
+	while (true) {
+		size_t start = jsonStr.find('[', pos);
+		if (start == std::string::npos) break;
+		size_t comma = jsonStr.find(',', start);
+		size_t end = jsonStr.find(']', comma);
+		if (comma == std::string::npos || end == std::string::npos) break;
 
-	while (std::getline(ss, token, '[')) {
-		if (token.empty()) continue;
-
-		size_t commaPos = token.find(',');
-		if (commaPos != std::string::npos) {
-			try {
-				int x = std::stoi(token.substr(0, commaPos));
-				int y = std::stoi(token.substr(commaPos + 1, token.find(']')));
-				cells.push_back({x, y});
-			}
-			catch (...) {
-			}
+		try {
+			int x = std::stoi(jsonStr.substr(start + 1, comma - start - 1));
+			int y = std::stoi(jsonStr.substr(comma + 1, end - comma - 1));
+			cells.push_back({ x, y });
 		}
+		catch (...) {
+			// Ignore invalid fragment and continue parsing.
+		}
+
+		pos = end + 1;
 	}
 
 	return cells;
@@ -177,14 +195,10 @@ std::vector<std::pair<int, int>> DatabaseManager::getPatternCells(const std::str
 		SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 		return result;
 	}
-	SQLCHAR cellsBuffer[4096];
-	SQLLEN cellsLen;
-
 	ret = SQLFetch(stmt);
 	if (SQL_SUCCEEDED(ret)) {
-		SQLGetData(stmt, 1, SQL_C_CHAR, cellsBuffer, sizeof(cellsBuffer), &cellsLen);
-		if (cellsLen > 0) {
-			std::string cellsJson((char*)cellsBuffer, cellsLen);
+		const std::string cellsJson = readTextColumn(stmt, 1);
+		if (!cellsJson.empty()) {
 			result = decodeCells(cellsJson);
 		}
 	}
@@ -367,6 +381,89 @@ bool DatabaseManager::saveBoard(const std::vector<std::pair<int, int>>& cells) {
 
 	SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 	return success;
+}
+
+std::vector<int> DatabaseManager::getAllBoardIds() {
+	std::vector<int> result;
+
+	if (!isConnected()) {
+		std::cerr << "Database not connected" << std::endl;
+		return result;
+	}
+
+	SQLHSTMT stmt;
+	SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+	if (!SQL_SUCCEEDED(ret)) {
+		std::cerr << "Failed to allocate statement handle" << std::endl;
+		return result;
+	}
+
+	const std::string query = "SELECT id FROM dbo.GameBoards ORDER BY id DESC";
+	ret = SQLExecDirect(stmt, (SQLCHAR*)query.c_str(), SQL_NTS);
+	if (!SQL_SUCCEEDED(ret)) {
+		printOdbcError(SQL_HANDLE_STMT, stmt, "Failed to fetch board ids");
+		SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+		return result;
+	}
+
+	while (SQLFetch(stmt) == SQL_SUCCESS) {
+		SQLINTEGER boardId = 0;
+		if (SQL_SUCCEEDED(SQLGetData(stmt, 1, SQL_C_LONG, &boardId, 0, NULL))) {
+			result.push_back((int)boardId);
+		}
+	}
+
+	SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+	return result;
+}
+
+std::vector<std::pair<int, int>> DatabaseManager::getBoardCells(int boardId) {
+	std::vector<std::pair<int, int>> result;
+
+	if (!isConnected()) {
+		std::cerr << "Database not connected" << std::endl;
+		return result;
+	}
+
+	SQLHSTMT stmt;
+	SQLRETURN ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+	if (!SQL_SUCCEEDED(ret)) {
+		std::cerr << "Failed to allocate statement handle" << std::endl;
+		return result;
+	}
+
+	const std::string query = "SELECT cells FROM dbo.GameBoards WHERE id = ?";
+	ret = SQLPrepare(stmt, (SQLCHAR*)query.c_str(), SQL_NTS);
+	if (!SQL_SUCCEEDED(ret)) {
+		printOdbcError(SQL_HANDLE_STMT, stmt, "Failed to prepare board select");
+		SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+		return result;
+	}
+
+	SQLINTEGER idParam = boardId;
+	ret = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &idParam, 0, NULL);
+	if (!SQL_SUCCEEDED(ret)) {
+		printOdbcError(SQL_HANDLE_STMT, stmt, "Failed to bind board id");
+		SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+		return result;
+	}
+
+	ret = SQLExecute(stmt);
+	if (!SQL_SUCCEEDED(ret)) {
+		printOdbcError(SQL_HANDLE_STMT, stmt, "Failed to execute board select");
+		SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+		return result;
+	}
+
+	if (SQL_SUCCEEDED(SQLFetch(stmt))) {
+		const std::string cellsJson = readTextColumn(stmt, 1);
+		if (!cellsJson.empty()) {
+			result = decodeCells(cellsJson);
+		}
+	}
+
+	SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+	return result;
 }
 
 bool DatabaseManager::deletePattern(const std::string& patternName) {

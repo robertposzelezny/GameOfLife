@@ -63,6 +63,8 @@ public:
     bool patternPlacementEnabled = false;
     int selectedPatternIndex = 0;
     std::vector<std::string> patternNames;
+    int selectedBoardIndex = 0;
+    std::vector<int> boardIds;
     float cellSize = 0.f;
 
 private:

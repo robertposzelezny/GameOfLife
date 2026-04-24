@@ -61,8 +61,6 @@ void Game::runGame() {
     int GRID_N = 100;
     g.resize(GRID_N);
 
-    float sizeW = GRID_W / static_cast<float>(GRID_N);
-    float sizeH = WIN_H / static_cast<float>(GRID_N);
     cellSize = std::min(GRID_W / (float)GRID_N, WIN_H / (float)GRID_N);
 
     float gridHeight = GRID_N * cellSize;
@@ -74,6 +72,8 @@ void Game::runGame() {
     UIManager uiManager(GRID_W, MENU_W);
     DatabaseManager& db = DatabaseManager::getInstance();
     patternNames = db.getAllPatternNames();
+    boardIds = db.getAllBoardIds();
+    selectedBoardIndex = 0;
     if (patternNames.empty()) {
         for (const auto& pattern : getBuiltInPatterns()) {
             patternNames.push_back(pattern.first);
@@ -105,49 +105,73 @@ void Game::runGame() {
         pbtn->setActive(patternPlacementEnabled);
     };
 
-    auto collectNormalizedLiveCells = [&]() -> std::vector<std::pair<int, int>> {
+    auto selectedBoardId = [&]() -> int {
+        if (boardIds.empty()) {
+            return -1;
+        }
+        if (selectedBoardIndex < 0 || selectedBoardIndex >= static_cast<int>(boardIds.size())) {
+            selectedBoardIndex = 0;
+        }
+        return boardIds[selectedBoardIndex];
+    };
+
+    auto updateLoadBoardLabel = [&]() {
+        Button* loadBtn = uiManager.getLoadBoardButton();
+        if (!loadBtn) {
+            return;
+        }
+
+        int boardId = selectedBoardId();
+        if (boardId < 0) {
+            loadBtn->setLabel("Load Board (none)");
+        }
+        else {
+            loadBtn->setLabel("Load Board (#" + std::to_string(boardId) + ")");
+        }
+    };
+
+    auto collectLiveCells = [&](bool normalize) -> std::vector<std::pair<int, int>> {
         std::vector<std::pair<int, int>> liveCells;
         auto& cells = g.getCells();
-
-        int minX = static_cast<int>(cells.size());
-        int minY = static_cast<int>(cells.size());
+        int minX = 999999;
+        int minY = 999999;
 
         for (int y = 0; y < static_cast<int>(cells.size()); ++y) {
             for (int x = 0; x < static_cast<int>(cells[y].size()); ++x) {
                 if (cells[y][x] == 1) {
                     liveCells.push_back({ x, y });
-                    minX = std::min(minX, x);
-                    minY = std::min(minY, y);
+                    if (x < minX) minX = x;
+                    if (y < minY) minY = y;
                 }
             }
         }
 
-        if (liveCells.empty()) {
-            return {};
-        }
-
-        for (auto& cell : liveCells) {
-            cell.first -= minX;
-            cell.second -= minY;
+        if (normalize) {
+            for (auto& cell : liveCells) {
+                cell.first -= minX;
+                cell.second -= minY;
+            }
         }
 
         return liveCells;
     };
 
-    auto collectLiveCells = [&]() -> std::vector<std::pair<int, int>> {
-        std::vector<std::pair<int, int>> liveCells;
-        auto& cells = g.getCells();
-        for (int y = 0; y < static_cast<int>(cells.size()); ++y) {
-            for (int x = 0; x < static_cast<int>(cells[y].size()); ++x) {
-                if (cells[y][x] == 1) {
-                    liveCells.push_back({ x, y });
-                }
+    auto applyBoardCells = [&](const std::vector<std::pair<int, int>>& liveCells) {
+        g.clear();
+        auto& gridCells = g.getCells();
+        const int gridSize = static_cast<int>(gridCells.size());
+        for (const auto& cell : liveCells) {
+            const int x = cell.first;
+            const int y = cell.second;
+            if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+                gridCells[y][x] = 1;
             }
         }
-        return liveCells;
+        running = false;
     };
 
     updatePatternToggle();
+    updateLoadBoardLabel();
 
     sf::Clock clock;
     int msPerGen = 150;
@@ -265,7 +289,7 @@ void Game::runGame() {
                                     newPatternName.erase(newPatternName.find_last_not_of(" \t") + 1);
                                 }
 
-                                const auto liveCells = collectNormalizedLiveCells();
+                                const auto liveCells = collectLiveCells(true);
                                 if (newPatternName.empty()) {
                                     std::cerr << "Pattern name cannot be empty." << std::endl;
                                 }
@@ -301,7 +325,7 @@ void Game::runGame() {
                                 break;
                             }
                             case Command::SAVE_BOARD: {
-                                const auto liveCells = collectLiveCells();
+                                const auto liveCells = collectLiveCells(false);
                                 if (liveCells.empty()) {
                                     std::cerr << "Grid has no alive cells to save as board." << std::endl;
                                 }
@@ -309,7 +333,45 @@ void Game::runGame() {
                                     std::cerr << "Failed to save board." << std::endl;
                                 }
                                 else {
+                                    boardIds = db.getAllBoardIds();
+                                    selectedBoardIndex = 0;
+                                    updateLoadBoardLabel();
                                     std::cout << "Saved current board to database." << std::endl;
+                                }
+                                break;
+                            }
+                            case Command::PREV_BOARD:
+                                if (!boardIds.empty()) {
+                                    selectedBoardIndex--;
+                                    if (selectedBoardIndex < 0) {
+                                        selectedBoardIndex = static_cast<int>(boardIds.size()) - 1;
+                                    }
+                                    updateLoadBoardLabel();
+                                }
+                                break;
+                            case Command::NEXT_BOARD:
+                                if (!boardIds.empty()) {
+                                    selectedBoardIndex++;
+                                    if (selectedBoardIndex >= static_cast<int>(boardIds.size())) {
+                                        selectedBoardIndex = 0;
+                                    }
+                                    updateLoadBoardLabel();
+                                }
+                                break;
+                            case Command::LOAD_BOARD: {
+                                const int boardId = selectedBoardId();
+                                if (boardId < 0) {
+                                    std::cerr << "No saved boards found in database." << std::endl;
+                                }
+                                else {
+                                    const auto savedCells = db.getBoardCells(boardId);
+                                    if (savedCells.empty()) {
+                                        std::cerr << "Saved board #" << boardId << " is empty or unavailable." << std::endl;
+                                    }
+                                    else {
+                                        applyBoardCells(savedCells);
+                                        std::cout << "Loaded board #" << boardId << " from database." << std::endl;
+                                    }
                                 }
                                 break;
                             }

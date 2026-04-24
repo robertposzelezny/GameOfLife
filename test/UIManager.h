@@ -11,7 +11,10 @@ enum class Command {
     ADD_PATTERN,
     SELECT_PATTERN,
     SAVE_PATTERN,
-    SAVE_BOARD
+    SAVE_BOARD,
+    PREV_BOARD,
+    NEXT_BOARD,
+    LOAD_BOARD
 };
 
 class UIManager {
@@ -20,6 +23,7 @@ private:
     std::unordered_map<Button*, Command> buttonCommands;
     std::unordered_map<Button*, std::string> buttonPatterns;
     Button* patternToggleButton = nullptr;
+    Button* loadBoardButton = nullptr;
     int GRID_W;
     int MENU_W;
 
@@ -36,5 +40,6 @@ public:
 
     Command getCommand(Button* b);
     Button* getPatternToggleButton();
+    Button* getLoadBoardButton();
     std::string getPatternName(Button* b) const;
 };
