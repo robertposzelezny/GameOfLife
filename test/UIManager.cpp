@@ -78,8 +78,8 @@ void UIManager::createButtons(sf::Font& sharedFont, const std::vector<std::strin
         { (float)GRID_W + 20.f, 815.f }, { (float)MENU_W - 40.f, 45.f }, sharedFont);
     add(loadBoardButton, Command::LOAD_BOARD);
 
-    add(new Button("Space - Start/Pause \n S - Next tick \n R - Randomize \n C - Clear \n Arrows L/R - Change pattern \n ESC - Close App",
-        { (float)GRID_W + 20.f, 875.f }, { (float)MENU_W - 40.f, 100.f }, sharedFont));
+    //add(new Button("Space - Start/Pause \n S - Next tick \n R - Randomize \n C - Clear \n Arrows L/R - Change pattern \n ESC - Close App",
+    //    { (float)GRID_W + 20.f, 875.f }, { (float)MENU_W - 40.f, 110.f }, sharedFont));
 }
 
 void UIManager::resetButtons() {

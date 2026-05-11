@@ -1,9 +1,9 @@
 #pragma once
-#include <windows.h>
-#include <sqlext.h>
+#include <memory>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
+#include "nanodbc.h"
 
 class DatabaseManager {
 public:
@@ -48,7 +48,7 @@ public:
 	std::vector<std::string> getAllPatternNames();
 
 	/**
-	 * @brief Saves current board cells to dbo.boards table.
+	 * @brief Saves current board cells to dbo.GameBoards table.
 	 * @param cells vector of alive cell coordinates
 	 * @return true if save succeeded
 	 */
@@ -79,9 +79,10 @@ private:
 	~DatabaseManager();
 	DatabaseManager(const DatabaseManager&) = delete;
 	DatabaseManager& operator=(const DatabaseManager&) = delete;
-	SQLHENV env;
-	SQLHDBC dbc;
-	bool connected;
+
+	std::unique_ptr<nanodbc::connection> conn;
+	bool connected = false;
+
 	std::string encodeCells(const std::vector<std::pair<int, int>>& cells) const;
 	std::vector<std::pair<int, int>> decodeCells(const std::string& jsonStr) const;
 };
